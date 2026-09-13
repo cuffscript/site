@@ -1,4 +1,4 @@
-# site
+# CuffScript website
 
 Website for [CuffScript](https://github.com/cuffscript/cuffscript): a landing
 page, a browser IDE (editor, multi-file projects, stdin, an AST/token
@@ -66,4 +66,4 @@ Pages, GitHub Pages) resolve `/ide` and `/guide` to their folder's
 
 ## License
 
-Apache-2.0 — see `LICENSE`.
+Apache-2.0 — see [`LICENSE`](LICENSE).
