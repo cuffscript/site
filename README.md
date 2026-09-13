@@ -1,4 +1,4 @@
-# cuffscript website
+# CuffScript website
 
 Browser IDE for [CuffScript](https://github.com/cuffscript/cuffscript): a code
 editor, multi-file projects, stdin, an AST/token viewer, and a full language
