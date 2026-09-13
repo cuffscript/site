@@ -285,7 +285,7 @@ remove "level" from profile</code></pre>
                         <code>do:</code>는 붙이지 않습니다.
                     </p>
                     <pre><code class="language-cuff">set returnable function fib(n) do:
-    if n <= 1 do:
+    if n &lt;= 1 do:
         return n
     end
     return fib(n - 1) + fib(n - 2)
@@ -611,12 +611,14 @@ print(DEFAULT_GREETING)</code></pre>
                             <tr>
                                 <td><code>DLC:math</code></td>
                                 <td><code>sqrt</code>, <code>abs</code>, <code>pow</code>, <code>round</code>,
-                                    <code>floor</code>, <code>ceil</code>, <code>min</code>, <code>max</code></td>
+                                    <code>floor</code>, <code>ceil</code>, <code>min</code>, <code>max</code>
+                                </td>
                             </tr>
                             <tr>
                                 <td><code>DLC:string</code></td>
                                 <td><code>upper</code>, <code>lower</code>, <code>trim</code>, <code>length</code>,
-                                    <code>contains</code>, <code>starts_with</code>, <code>ends_with</code></td>
+                                    <code>contains</code>, <code>starts_with</code>, <code>ends_with</code>
+                                </td>
                             </tr>
                             <tr>
                                 <td><code>DLC:time</code></td>
