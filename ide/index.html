@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="ko">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>CuffScript IDE</title>
+    <meta name="description" content="브라우저에서 바로 실행하는 CuffScript 웹 IDE" />
+    <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+</head>
+
+<body>
+    <div class="app-shell app-shell--fixed">
+        <div id="site-header-root"></div>
+
+        <div class="toolbar">
+            <select id="example-select" class="select" title="예제 불러오기">
+                <option value="">예제 불러오기…</option>
+            </select>
+            <div class="toolbar-divider"></div>
+            <button id="run-btn" class="btn btn-primary" type="button"></button>
+            <button id="stop-btn" class="btn btn-danger" type="button" hidden></button>
+            <button id="ast-btn" class="btn" type="button" title="토큰/AST 덤프 보기"></button>
+            <span id="run-status" class="run-status"></span>
+            <div class="toolbar-spacer"></div>
+            <button id="share-btn" class="btn" type="button" title="공유 링크 복사"></button>
+            <button id="download-btn" class="btn" type="button" title="현재 파일 다운로드"></button>
+        </div>
+
+        <div class="workspace">
+            <div class="editor-pane">
+                <div id="tab-bar" class="tab-bar"></div>
+                <div id="editor-host" class="editor-host"></div>
+            </div>
+
+            <div class="side-pane">
+                <div class="pane-tabs">
+                    <div class="pane-tab active" data-pane="output">출력</div>
+                    <div class="pane-tab" data-pane="stdin">표준 입력 (stdin)</div>
+                </div>
+                <div id="pane-output" class="pane-body active">
+                    <div id="console" class="console"></div>
+                </div>
+                <div id="pane-stdin" class="pane-body">
+                    <div class="stdin-panel">
+                        <p class="stdin-hint">
+                            <code>input()</code>이 호출될 때 위에서부터 한 줄씩 읽어옵니다. 프로그램 실행 전에
+                            필요한 입력을 미리 적어두세요. 다 쓰면 빈 문자열이 반환됩니다.
+                        </p>
+                        <textarea id="stdin-input" class="stdin-textarea" placeholder="예: 15&#10;3.5"
+                            spellcheck="false"></textarea>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script type="module" src="/src/ide.ts"></script>
+</body>
+
+</html>

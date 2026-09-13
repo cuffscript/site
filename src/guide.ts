@@ -1,24 +1,11 @@
 import "./styles/global.css";
-import { initColorScheme, toggleColorScheme } from "./ui/colorScheme";
-import { icons } from "./ui/icons";
-import { highlightCuffBlocks } from "./editor/staticHighlight";
+import { initColorScheme } from "./ui/colorScheme";
+import { renderHeader } from "./ui/header";
+import { scheduleHighlightCuffBlocks } from "./editor/staticHighlight";
 
 initColorScheme();
-highlightCuffBlocks();
-
-const themeToggle = document.getElementById("theme-toggle") as HTMLButtonElement;
-const githubLink = document.getElementById("github-link");
-if (githubLink) githubLink.innerHTML = icons.external;
-
-function renderThemeIcon(): void {
-    const dark = document.documentElement.getAttribute("data-theme") === "dark";
-    themeToggle.innerHTML = dark ? icons.sun : icons.moon;
-}
-renderThemeIcon();
-themeToggle.addEventListener("click", () => {
-    toggleColorScheme();
-    renderThemeIcon();
-});
+renderHeader("guide");
+scheduleHighlightCuffBlocks();
 
 const sections = Array.from(document.querySelectorAll<HTMLElement>(".guide-section"));
 const tocLinks = Array.from(document.querySelectorAll<HTMLAnchorElement>(".guide-toc a"));

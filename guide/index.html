@@ -1,40 +1,17 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="ko">
 
 <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>CuffScript — Guide</title>
+    <title>CuffScript 가이드</title>
     <meta name="description" content="CuffScript 언어 문법과 이 IDE 사용법 안내" />
     <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
 </head>
 
 <body>
     <div class="app-shell">
-        <header class="site-header">
-            <a class="brand" href="/">
-                <svg viewBox="0 0 512 512" xmlns="http://www.w3.org/2000/svg">
-                    <path
-                        d="M43.294 55a24.745 23.277-44.124 0 1 25.468-24h410a16.497 15.518-44.124 0 1 15.021 16l-25.077 410a24.745 23.277-44.124 0 1-25.468 24h-410a16.497 15.518-44.124 0 1-15.021-16Z"
-                        fill="#008f6b" />
-                    <text x="462" y="465"
-                        font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', 'Inter', 'Arial', sans-serif"
-                        font-size="208" font-weight="700" font-style="italic" letter-spacing="-13" fill="#fff"
-                        text-anchor="end" dominant-baseline="ideographic">CS</text>
-                </svg>
-                <span>CuffScript</span>
-            </a>
-            <nav class="site-nav">
-                <a href="/">IDE</a>
-                <a href="/guide.html" aria-current="page">가이드</a>
-            </nav>
-            <div class="header-spacer"></div>
-            <div class="header-actions">
-                <a id="github-link" class="icon-btn" href="https://github.com/cuffscript/cuffscript" target="_blank"
-                    rel="noreferrer" title="GitHub 저장소"></a>
-                <button id="theme-toggle" class="icon-btn" type="button" title="테마 전환"></button>
-            </div>
-        </header>
+        <div id="site-header-root"></div>
 
         <main class="guide-shell">
             <nav class="guide-toc" id="guide-toc">
@@ -308,7 +285,7 @@ remove "level" from profile</code></pre>
                         <code>do:</code>는 붙이지 않습니다.
                     </p>
                     <pre><code class="language-cuff">set returnable function fib(n) do:
-    if n &lt;= 1 do:
+    if n <= 1 do:
         return n
     end
     return fib(n - 1) + fib(n - 2)
@@ -634,15 +611,12 @@ print(DEFAULT_GREETING)</code></pre>
                             <tr>
                                 <td><code>DLC:math</code></td>
                                 <td><code>sqrt</code>, <code>abs</code>, <code>pow</code>, <code>round</code>,
-                                    <code>floor</code>,
-                                    <code>ceil</code>, <code>min</code>, <code>max</code>
-                                </td>
+                                    <code>floor</code>, <code>ceil</code>, <code>min</code>, <code>max</code></td>
                             </tr>
                             <tr>
                                 <td><code>DLC:string</code></td>
                                 <td><code>upper</code>, <code>lower</code>, <code>trim</code>, <code>length</code>,
-                                    <code>contains</code>, <code>starts_with</code>, <code>ends_with</code>
-                                </td>
+                                    <code>contains</code>, <code>starts_with</code>, <code>ends_with</code></td>
                             </tr>
                             <tr>
                                 <td><code>DLC:time</code></td>
@@ -655,8 +629,7 @@ print(DEFAULT_GREETING)</code></pre>
                             <tr>
                                 <td><code>DLC:list</code></td>
                                 <td><code>sort</code>, <code>reverse</code>, <code>join</code>, <code>unique</code> (원본은
-                                    바꾸지 않고 새 리스트를
-                                    반환)</td>
+                                    바꾸지 않고 새 리스트를 반환)</td>
                             </tr>
                             <tr>
                                 <td><code>DLC:convert</code></td>
@@ -700,11 +673,9 @@ print(DEFAULT_GREETING)</code></pre>
                     <h2>관련 링크</h2>
                     <ul>
                         <li><a href="https://github.com/cuffscript/cuffscript" target="_blank"
-                                rel="noreferrer">cuffscript — 엔진/CLI
-                                소스코드</a></li>
+                                rel="noreferrer">cuffscript — 엔진/CLI 소스코드</a></li>
                         <li><a href="https://www.npmjs.com/package/cuffscript-wasm" target="_blank"
-                                rel="noreferrer">cuffscript-wasm
-                                — npm 패키지</a></li>
+                                rel="noreferrer">cuffscript-wasm — npm 패키지</a></li>
                     </ul>
                 </section>
             </article>

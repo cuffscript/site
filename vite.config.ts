@@ -16,8 +16,9 @@ export default defineConfig({
     build: {
         rollupOptions: {
             input: {
-                main: htmlEntry("index.html"),
-                guide: htmlEntry("guide.html"),
+                home: htmlEntry("index.html"),
+                ide: htmlEntry("ide/index.html"),
+                guide: htmlEntry("guide/index.html"),
             },
         },
     },

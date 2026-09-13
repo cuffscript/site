@@ -37,6 +37,14 @@ export function highlightCuff(code: string): string {
                 inBlockComment = false;
                 continue;
             }
+            if (ch === "\n") {
+                // Must handle the newline on its own: code.indexOf("\n", i) below
+                // would otherwise find *this* position and return `i` itself,
+                // leaving `i` stuck forever on multi-line comments.
+                out += "\n";
+                i += 1;
+                continue;
+            }
             const eol = code.indexOf("\n", i);
             const end = eol === -1 ? n : eol;
             out += wrap("tok-comment", code.slice(i, end));
@@ -195,4 +203,18 @@ export function highlightCuffBlocks(root: ParentNode = document): void {
         const source = block.textContent ?? "";
         block.innerHTML = highlightCuff(source);
     });
+}
+
+// Defers highlighting until the browser is idle (or, lacking that API, until
+// right after the current paint) so a page full of code blocks never delays
+// first render.
+export function scheduleHighlightCuffBlocks(root: ParentNode = document): void {
+    const withIdle = window as typeof window & {
+        requestIdleCallback?: (callback: () => void) => number;
+    };
+    if (typeof withIdle.requestIdleCallback === "function") {
+        withIdle.requestIdleCallback(() => highlightCuffBlocks(root));
+    } else {
+        window.setTimeout(() => highlightCuffBlocks(root), 0);
+    }
 }

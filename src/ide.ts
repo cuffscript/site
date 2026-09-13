@@ -1,5 +1,6 @@
 import "./styles/global.css";
-import { initColorScheme, toggleColorScheme } from "./ui/colorScheme";
+import { initColorScheme } from "./ui/colorScheme";
+import { renderHeader } from "./ui/header";
 import { icons } from "./ui/icons";
 import { EditorManager } from "./ide/editorManager";
 import { ConsoleView } from "./ide/console";
@@ -16,9 +17,8 @@ function el<T extends HTMLElement>(id: string): T {
 }
 
 initColorScheme();
+renderHeader("ide");
 
-const themeToggle = el<HTMLButtonElement>("theme-toggle");
-const githubLink = el<HTMLAnchorElement>("github-link");
 const exampleSelect = el<HTMLSelectElement>("example-select");
 const runBtn = el<HTMLButtonElement>("run-btn");
 const stopBtn = el<HTMLButtonElement>("stop-btn");
@@ -31,22 +31,11 @@ const editorHost = el<HTMLElement>("editor-host");
 const consoleEl = el<HTMLElement>("console");
 const stdinInput = el<HTMLTextAreaElement>("stdin-input");
 
-githubLink.innerHTML = icons.external;
 runBtn.innerHTML = `${icons.play}<span>실행</span>`;
 stopBtn.innerHTML = `${icons.stop}<span>중단</span>`;
 astBtn.innerHTML = `${icons.tree}<span>AST 보기</span>`;
 shareBtn.innerHTML = `${icons.link}<span>공유 링크</span>`;
 downloadBtn.innerHTML = `${icons.download}<span>다운로드</span>`;
-
-function renderThemeIcon(): void {
-    const dark = document.documentElement.getAttribute("data-theme") === "dark";
-    themeToggle.innerHTML = dark ? icons.sun : icons.moon;
-}
-renderThemeIcon();
-themeToggle.addEventListener("click", () => {
-    toggleColorScheme();
-    renderThemeIcon();
-});
 
 for (const example of EXAMPLES) {
     const option = document.createElement("option");

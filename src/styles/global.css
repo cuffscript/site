@@ -103,7 +103,20 @@ pre {
 .app-shell {
     display: flex;
     flex-direction: column;
+    min-height: 100vh;
+}
+
+/* Only the IDE needs a hard-capped viewport height, so its editor/console
+   panes scroll internally instead of the whole page. Home and guide pages
+   use the plain .app-shell above and grow naturally with their content. */
+.app-shell--fixed {
     height: 100vh;
+}
+
+/* JS injects the real <header> here (see src/ui/header.ts); `contents` keeps
+   the wrapper out of the flex layout so it doesn't add an extra box. */
+#site-header-root {
+    display: contents;
 }
 
 .site-header {
@@ -729,4 +742,173 @@ pre {
 
 .tok-op {
     color: var(--code-op);
+}
+
+/* ---- home page ---- */
+
+.home-main {
+    flex: 1;
+}
+
+.home-hero {
+    max-width: 720px;
+    margin: 0 auto;
+    padding: 88px 24px 48px;
+    text-align: center;
+}
+
+.home-kicker {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 4px 12px;
+    border-radius: 999px;
+    background: var(--accent-soft);
+    color: var(--accent);
+    font-size: 12.5px;
+    font-weight: 600;
+    margin-bottom: 20px;
+}
+
+.home-hero h1 {
+    font-size: 42px;
+    line-height: 1.15;
+    margin: 0 0 16px;
+    letter-spacing: -0.02em;
+}
+
+.home-tagline {
+    font-size: 16.5px;
+    color: var(--text-muted);
+    line-height: 1.6;
+    max-width: 560px;
+    margin: 0 auto 32px;
+}
+
+.home-cta {
+    display: flex;
+    justify-content: center;
+    gap: 12px;
+    flex-wrap: wrap;
+}
+
+.btn-lg {
+    padding: 11px 22px;
+    font-size: 14.5px;
+    border-radius: 10px;
+}
+
+.btn-lg svg {
+    width: 16px;
+    height: 16px;
+}
+
+.home-showcase {
+    max-width: 640px;
+    margin: 0 auto;
+    padding: 0 24px 64px;
+}
+
+.home-showcase pre {
+    margin: 0;
+    padding: 20px 22px;
+    border-radius: 12px;
+    background: var(--bg-elevated);
+    border: 1px solid var(--border);
+    box-shadow: var(--shadow);
+    overflow-x: auto;
+    font-size: 13px;
+    line-height: 1.7;
+}
+
+.home-features {
+    max-width: 1040px;
+    margin: 0 auto;
+    padding: 0 24px 72px;
+}
+
+.feature-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    gap: 16px;
+}
+
+.feature-card {
+    padding: 20px;
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    background: var(--bg-elevated);
+}
+
+.feature-card .feature-icon {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 34px;
+    height: 34px;
+    border-radius: 9px;
+    background: var(--accent-soft);
+    color: var(--accent);
+    margin-bottom: 12px;
+}
+
+.feature-card .feature-icon svg {
+    width: 18px;
+    height: 18px;
+}
+
+.feature-card h3 {
+    font-size: 15px;
+    margin: 0 0 6px;
+}
+
+.feature-card p {
+    font-size: 13.5px;
+    color: var(--text-muted);
+    line-height: 1.6;
+    margin: 0;
+}
+
+.home-band {
+    border-top: 1px solid var(--border);
+    background: var(--bg-elevated);
+    padding: 56px 24px;
+    text-align: center;
+}
+
+.home-band h2 {
+    font-size: 22px;
+    margin: 0 0 10px;
+}
+
+.home-band p {
+    color: var(--text-muted);
+    font-size: 14.5px;
+    margin: 0 0 24px;
+}
+
+.site-footer {
+    border-top: 1px solid var(--border);
+    padding: 20px 24px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 20px;
+    flex-wrap: wrap;
+    font-size: 13px;
+    color: var(--text-faint);
+}
+
+.site-footer a {
+    color: var(--text-muted);
+}
+
+@media (max-width: 560px) {
+    .home-hero {
+        padding: 56px 20px 40px;
+    }
+
+    .home-hero h1 {
+        font-size: 32px;
+    }
 }

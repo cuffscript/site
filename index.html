@@ -1,84 +1,105 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="ko">
 
 <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>CuffScript — IDE</title>
-    <meta name="description" content="브라우저에서 바로 실행하는 CuffScript 웹 IDE" />
+    <title>CuffScript — 자연어에 가까운 프로그래밍 언어</title>
+    <meta name="description" content="자연어에 가까운 문법의 CuffScript 언어를 설치 없이 브라우저에서 바로 실행해 보세요." />
     <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
 </head>
 
 <body>
     <div class="app-shell">
-        <header class="site-header">
-            <a class="brand" href="/">
-                <svg viewBox="0 0 512 512" xmlns="http://www.w3.org/2000/svg">
-                    <path
-                        d="M43.294 55a24.745 23.277-44.124 0 1 25.468-24h410a16.497 15.518-44.124 0 1 15.021 16l-25.077 410a24.745 23.277-44.124 0 1-25.468 24h-410a16.497 15.518-44.124 0 1-15.021-16Z"
-                        fill="#008f6b" />
-                    <text x="462" y="465"
-                        font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', 'Inter', 'Arial', sans-serif"
-                        font-size="208" font-weight="700" font-style="italic" letter-spacing="-13" fill="#fff"
-                        text-anchor="end" dominant-baseline="ideographic">CS</text>
-                </svg>
-                <span>CuffScript</span>
-            </a>
-            <nav class="site-nav">
-                <a href="/" aria-current="page">IDE</a>
-                <a href="/guide.html">가이드</a>
-            </nav>
-            <div class="header-spacer"></div>
-            <div class="header-actions">
-                <a id="github-link" class="icon-btn" href="https://github.com/cuffscript/cuffscript" target="_blank"
-                    rel="noreferrer" title="GitHub 저장소"></a>
-                <button id="theme-toggle" class="icon-btn" type="button" title="테마 전환"></button>
-            </div>
-        </header>
+        <div id="site-header-root"></div>
 
-        <div class="toolbar">
-            <select id="example-select" class="select" title="예제 불러오기">
-                <option value="">예제 불러오기…</option>
-            </select>
-            <div class="toolbar-divider"></div>
-            <button id="run-btn" class="btn btn-primary" type="button"></button>
-            <button id="stop-btn" class="btn btn-danger" type="button" hidden></button>
-            <button id="ast-btn" class="btn" type="button" title="토큰/AST 덤프 보기"></button>
-            <span id="run-status" class="run-status"></span>
-            <div class="toolbar-spacer"></div>
-            <button id="share-btn" class="btn" type="button" title="공유 링크 복사"></button>
-            <button id="download-btn" class="btn" type="button" title="현재 파일 다운로드"></button>
-        </div>
-
-        <div class="workspace">
-            <div class="editor-pane">
-                <div id="tab-bar" class="tab-bar"></div>
-                <div id="editor-host" class="editor-host"></div>
-            </div>
-
-            <div class="side-pane">
-                <div class="pane-tabs">
-                    <div class="pane-tab active" data-pane="output">출력</div>
-                    <div class="pane-tab" data-pane="stdin">표준 입력 (stdin)</div>
+        <main class="home-main">
+            <section class="home-hero">
+                <span class="home-kicker">브라우저에서 바로 실행</span>
+                <h1>읽는 그대로 이해되는<br />프로그래밍 언어, CuffScript</h1>
+                <p class="home-tagline">
+                    <code>set</code>, <code>change</code>, <code>do:</code> 같은 자연어에 가까운
+                    키워드와, <code>[num]</code>·<code>[word]</code>처럼 이름이 있는 정규식 토큰으로
+                    처음 배우는 사람도 코드를 읽을 수 있게 설계된 인터프리터 언어입니다. 설치 없이 이
+                    페이지에서 바로 실행해 보세요.
+                </p>
+                <div class="home-cta">
+                    <a class="btn btn-primary btn-lg" href="/ide/">IDE에서 실행해보기</a>
+                    <a class="btn btn-lg" href="/guide/">언어 가이드 보기</a>
                 </div>
-                <div id="pane-output" class="pane-body active">
-                    <div id="console" class="console"></div>
-                </div>
-                <div id="pane-stdin" class="pane-body">
-                    <div class="stdin-panel">
-                        <p class="stdin-hint">
-                            <code>input()</code>이 호출될 때 위에서부터 한 줄씩 읽어옵니다. 프로그램 실행 전에
-                            필요한 입력을 미리 적어두세요. 다 쓰면 빈 문자열이 반환됩니다.
+            </section>
+
+            <section class="home-showcase">
+                <pre><code class="language-cuff">set returnable function fib(n) do:
+    if n <= 1 do: return n end
+    return fib(n - 1) + fib(n - 2)
+end
+
+set str email to "hi@cuffscript.dev"
+if email is "[word]+@[word]+\.[word]+" do:
+    print(f"{email} 은 올바른 이메일입니다")
+end
+
+print(f"fib(10) = {fib(10)}")</code></pre>
+            </section>
+
+            <section class="home-features">
+                <div class="feature-grid">
+                    <div class="feature-card">
+                        <div class="feature-icon" id="icon-book"></div>
+                        <h3>자연어에 가까운 문법</h3>
+                        <p>
+                            <code>set number x to 5</code>처럼 말하듯 쓰는 선언과
+                            <code>add ... to ...</code> 같은 컬렉션 조작으로, 처음 보는 코드도 뜻을 짐작할
+                            수 있습니다.
                         </p>
-                        <textarea id="stdin-input" class="stdin-textarea" placeholder="예: 15&#10;3.5"
-                            spellcheck="false"></textarea>
+                    </div>
+                    <div class="feature-card">
+                        <div class="feature-icon" id="icon-wand"></div>
+                        <h3>읽을 수 있는 정규식</h3>
+                        <p>
+                            <code>\d</code>, <code>\w</code> 대신 <code>[num]</code>,
+                            <code>[word]</code> 같은 이름 있는 토큰으로 패턴을 표현해, 정규식을 처음 배우는
+                            사람도 부담이 적습니다.
+                        </p>
+                    </div>
+                    <div class="feature-card">
+                        <div class="feature-icon" id="icon-shield"></div>
+                        <h3>안전한 기본값</h3>
+                        <p>
+                            1부터 시작하는 인덱스, <code>or_else</code> 에러 복구, 재귀 깊이 제한, 정규식
+                            폭주 방지까지 — 흔한 실수를 언어 차원에서 막아줍니다.
+                        </p>
+                    </div>
+                    <div class="feature-card">
+                        <div class="feature-icon" id="icon-globe"></div>
+                        <h3>설치 없이 바로 실행</h3>
+                        <p>
+                            엔진이 WebAssembly로 컴파일되어 있어, 서버 없이 브라우저 안에서 직접 코드를
+                            실행합니다. 링크 하나로 코드를 공유할 수도 있습니다.
+                        </p>
                     </div>
                 </div>
-            </div>
-        </div>
+            </section>
+
+            <section class="home-band">
+                <h2>지금 바로 첫 줄을 실행해 보세요</h2>
+                <p>예제 10개가 준비되어 있어, 기초 문법부터 모듈까지 순서대로 따라가 볼 수 있습니다.</p>
+                <div class="home-cta">
+                    <a class="btn btn-primary btn-lg" href="/ide/">IDE 열기</a>
+                </div>
+            </section>
+        </main>
+
+        <footer class="site-footer">
+            <span>CuffScript is open source, licensed under Apache-2.0.</span>
+            <a href="https://github.com/cuffscript/cuffscript" target="_blank" rel="noreferrer">GitHub</a>
+            <a href="https://www.npmjs.com/package/cuffscript-wasm" target="_blank" rel="noreferrer">npm</a>
+            <a href="/guide/">가이드</a>
+        </footer>
     </div>
 
-    <script type="module" src="/src/main.ts"></script>
+    <script type="module" src="/src/home.ts"></script>
 </body>
 
 </html>
