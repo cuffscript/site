@@ -5,14 +5,29 @@ declare const self: DedicatedWorkerGlobalScope;
 import createCuffScriptModule from "cuffscript-wasm";
 import type { CuffScriptModule } from "cuffscript-wasm";
 import type { CuffFile, RunRequest, WorkerEvent } from "./types";
+import { openStdinChannel, requestLineBlocking, type StdinChannel } from "./stdinChannel";
 
 let modulePromise: Promise<CuffScriptModule> | null = null;
 let currentId = 0;
 let stdinBytes: number[] = [];
 let stdinPos = 0;
+let interactiveChannel: StdinChannel | null = null;
 
 function post(event: WorkerEvent): void {
     self.postMessage(event);
+}
+
+function nextStdinByte(): number | null | undefined {
+    if (stdinPos < stdinBytes.length) return stdinBytes[stdinPos++];
+    if (!interactiveChannel) return null;
+
+    // input() ran out of buffered bytes: ask the main thread for a line and
+    // block this worker (not the main thread) until it arrives.
+    post({ id: currentId, type: "stdin-request" });
+    const line = requestLineBlocking(interactiveChannel);
+    stdinBytes = Array.from(new TextEncoder().encode(line + "\n"));
+    stdinPos = 0;
+    return stdinPos < stdinBytes.length ? stdinBytes[stdinPos++] : null;
 }
 
 function loadModule(): Promise<CuffScriptModule> {
@@ -20,7 +35,7 @@ function loadModule(): Promise<CuffScriptModule> {
         modulePromise = createCuffScriptModule({
             print: (text: string) => post({ id: currentId, type: "stdout", text }),
             printErr: (text: string) => post({ id: currentId, type: "stderr", text }),
-            stdin: () => (stdinPos < stdinBytes.length ? stdinBytes[stdinPos++] : null),
+            stdin: nextStdinByte,
         });
     }
     return modulePromise;
@@ -61,6 +76,7 @@ self.onmessage = async (event: MessageEvent<RunRequest>) => {
     currentId = req.id;
     stdinBytes = Array.from(new TextEncoder().encode(req.stdin));
     stdinPos = 0;
+    interactiveChannel = req.stdinBuffer ? openStdinChannel(req.stdinBuffer) : null;
 
     const entryFile = req.files.find((f) => f.path === req.entryPath);
     if (!entryFile) {

@@ -1,4 +1,4 @@
-import "./styles/global.css";
+import "./styles/base.css";
 import { initColorScheme } from "./ui/colorScheme";
 import { renderHeader } from "./ui/header";
 import { scheduleHighlightCuffBlocks } from "./editor/staticHighlight";

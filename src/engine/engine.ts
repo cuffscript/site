@@ -1,4 +1,11 @@
 import type { CuffFile, RunMode, RunRequest, WorkerEvent } from "./types";
+import {
+    createStdinBuffer,
+    interactiveStdinSupported,
+    openStdinChannel,
+    provideLine,
+    type StdinChannel,
+} from "./stdinChannel";
 
 export interface RunOptions {
     entryPath: string;
@@ -11,6 +18,9 @@ export interface RunOptions {
 export interface RunCallbacks {
     onStdout?: (text: string) => void;
     onStderr?: (text: string) => void;
+    // Fired when the running program calls input() and is now blocked
+    // waiting for a line — only ever fires when isInteractive is true.
+    onStdinRequest?: () => void;
     onDone?: (result: { success: boolean; error: string; elapsedMs: number }) => void;
     onFatal?: (message: string) => void;
 }
@@ -23,6 +33,18 @@ export class CuffEngine {
     private activeId: number | null = null;
     private callbacks: RunCallbacks | null = null;
     private timeoutHandle: number | undefined;
+    private timeoutMs = DEFAULT_TIMEOUT_MS;
+    private stdinChannel: StdinChannel | null = null;
+
+    // True when the page is cross-origin isolated and can use
+    // SharedArrayBuffer + Atomics — see public/_headers and vite.config.ts.
+    get isInteractive(): boolean {
+        return interactiveStdinSupported();
+    }
+
+    get isRunning(): boolean {
+        return this.activeId !== null;
+    }
 
     run(options: RunOptions, callbacks: RunCallbacks): void {
         this.stop();
@@ -37,6 +59,15 @@ export class CuffEngine {
         this.callbacks = callbacks;
         const id = this.nextId++;
         this.activeId = id;
+        this.timeoutMs = options.timeoutMs ?? DEFAULT_TIMEOUT_MS;
+
+        let stdinBuffer: SharedArrayBuffer | undefined;
+        if (this.isInteractive) {
+            stdinBuffer = createStdinBuffer();
+            this.stdinChannel = openStdinChannel(stdinBuffer);
+        } else {
+            this.stdinChannel = null;
+        }
 
         const request: RunRequest = {
             id,
@@ -44,33 +75,39 @@ export class CuffEngine {
             entryPath: options.entryPath,
             files: options.files,
             stdin: options.stdin ?? "",
+            stdinBuffer,
         };
 
-        const timeoutMs = options.timeoutMs ?? DEFAULT_TIMEOUT_MS;
-        this.timeoutHandle = window.setTimeout(() => {
-            if (this.activeId === id) {
-                callbacks.onFatal?.(
-                    `실행 시간이 ${Math.round(timeoutMs / 1000)}초를 넘어 자동으로 중단했습니다. 무한 루프가 없는지 확인해 보세요.`,
-                );
-                this.stop();
-            }
-        }, timeoutMs);
-
+        this.armTimeout(id);
         this.worker.postMessage(request);
     }
 
+    // Called by the UI once the person submits a line for a pending
+    // onStdinRequest. Resumes the run timeout since computation continues.
+    provideStdin(text: string): void {
+        if (!this.stdinChannel || this.activeId === null) return;
+        provideLine(this.stdinChannel, text);
+        this.armTimeout(this.activeId);
+    }
+
     stop(): void {
-        if (this.timeoutHandle !== undefined) {
-            window.clearTimeout(this.timeoutHandle);
-            this.timeoutHandle = undefined;
-        }
+        this.clearTimeoutHandle();
         this.worker?.terminate();
         this.worker = null;
         this.activeId = null;
+        this.stdinChannel = null;
     }
 
-    get isRunning(): boolean {
-        return this.activeId !== null;
+    private armTimeout(id: number): void {
+        this.clearTimeoutHandle();
+        this.timeoutHandle = window.setTimeout(() => {
+            if (this.activeId === id) {
+                this.callbacks?.onFatal?.(
+                    `실행 시간이 ${Math.round(this.timeoutMs / 1000)}초를 넘어 자동으로 중단했습니다. 무한 루프가 없는지 확인해 보세요.`,
+                );
+                this.stop();
+            }
+        }, this.timeoutMs);
     }
 
     private handleMessage(event: WorkerEvent): void {
@@ -81,6 +118,12 @@ export class CuffEngine {
                 break;
             case "stderr":
                 this.callbacks?.onStderr?.(event.text);
+                break;
+            case "stdin-request":
+                // Paused until provideStdin() is called — no point counting
+                // toward the run timeout while we wait on the person.
+                this.clearTimeoutHandle();
+                this.callbacks?.onStdinRequest?.();
                 break;
             case "done":
                 this.clearTimeoutHandle();

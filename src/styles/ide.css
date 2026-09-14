@@ -1,0 +1,289 @@
+/* IDE workspace — imported only by src/ide.ts on top of base.css */
+
+/* ---- IDE toolbar ---- */
+
+.toolbar {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 10px 16px;
+    border-bottom: 1px solid var(--border);
+    background: var(--bg-elevated);
+    flex-wrap: wrap;
+}
+
+.toolbar-divider {
+    width: 1px;
+    height: 20px;
+    background: var(--border);
+}
+
+.toolbar-spacer {
+    flex: 1;
+}
+
+.run-status {
+    font-size: 12px;
+    color: var(--text-faint);
+    min-width: 0;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+/* ---- workspace ---- */
+
+.workspace {
+    flex: 1;
+    display: flex;
+    min-height: 0;
+}
+
+.editor-pane {
+    flex: 1 1 60%;
+    display: flex;
+    flex-direction: column;
+    min-width: 0;
+    border-right: 1px solid var(--border);
+}
+
+.side-pane {
+    flex: 1 1 40%;
+    display: flex;
+    flex-direction: column;
+    min-width: 280px;
+    max-width: 560px;
+}
+
+.tab-bar {
+    display: flex;
+    align-items: stretch;
+    gap: 2px;
+    padding: 6px 6px 0;
+    background: var(--bg-elevated);
+    border-bottom: 1px solid var(--border);
+    overflow-x: auto;
+}
+
+.tab {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 7px 10px;
+    font-size: 12.5px;
+    font-family: var(--font-mono);
+    color: var(--text-muted);
+    background: transparent;
+    border: 1px solid transparent;
+    border-bottom: none;
+    border-radius: 6px 6px 0 0;
+    cursor: pointer;
+    white-space: nowrap;
+}
+
+.tab.active {
+    background: var(--bg);
+    border-color: var(--border);
+    color: var(--text);
+}
+
+.tab-close {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 14px;
+    height: 14px;
+    border-radius: 3px;
+    color: var(--text-faint);
+}
+
+.tab-close svg {
+    width: 12px;
+    height: 12px;
+    display: block;
+}
+
+.tab-close:hover {
+    background: var(--bg-inset);
+    color: var(--danger);
+}
+
+.tab-add {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 28px;
+    color: var(--text-faint);
+    cursor: pointer;
+    border-radius: 6px 6px 0 0;
+}
+
+.tab-add svg {
+    width: 14px;
+    height: 14px;
+    display: block;
+}
+
+.tab-add:hover {
+    color: var(--accent);
+    background: var(--bg);
+}
+
+.editor-host {
+    flex: 1;
+    min-height: 0;
+    overflow: auto;
+}
+
+.editor-host .cm-editor {
+    height: 100%;
+    font-size: 13.5px;
+}
+
+.editor-host .cm-scroller {
+    font-family: var(--font-mono);
+    line-height: 1.6;
+}
+
+/* ---- console / stdin ---- */
+
+.pane-tabs {
+    display: flex;
+    border-bottom: 1px solid var(--border);
+    background: var(--bg-elevated);
+}
+
+.pane-tab {
+    padding: 9px 14px;
+    font-size: 12.5px;
+    font-weight: 600;
+    color: var(--text-muted);
+    cursor: pointer;
+    border-bottom: 2px solid transparent;
+}
+
+.pane-tab.active {
+    color: var(--accent);
+    border-bottom-color: var(--accent);
+}
+
+.pane-body {
+    flex: 1;
+    min-height: 0;
+    display: none;
+    flex-direction: column;
+}
+
+.pane-body.active {
+    display: flex;
+}
+
+.console {
+    flex: 1;
+    margin: 0;
+    padding: 12px 14px;
+    overflow: auto;
+    font-family: var(--font-mono);
+    font-size: 12.5px;
+    line-height: 1.65;
+    white-space: pre-wrap;
+    word-break: break-word;
+    background: var(--bg);
+}
+
+.console-line-stderr {
+    color: var(--danger);
+}
+
+.console-line-status {
+    color: var(--text-faint);
+    font-style: italic;
+}
+
+.console-empty {
+    color: var(--text-faint);
+}
+
+.console-input-row {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.console-input-prompt {
+    color: var(--accent);
+    font-weight: 700;
+}
+
+.console-input-field {
+    flex: 1;
+    min-width: 0;
+    border: none;
+    outline: none;
+    background: transparent;
+    color: var(--text);
+    font-family: var(--font-mono);
+    font-size: 12.5px;
+    padding: 0;
+}
+
+.console-line-input-echo {
+    color: var(--text-muted);
+}
+
+.console-line-input-echo::before {
+    content: "❯ ";
+    color: var(--accent);
+}
+
+.stdin-panel {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    padding: 12px 14px;
+    gap: 8px;
+}
+
+.stdin-hint {
+    font-size: 12px;
+    color: var(--text-muted);
+    line-height: 1.5;
+}
+
+.stdin-textarea {
+    flex: 1;
+    resize: none;
+    font-family: var(--font-mono);
+    font-size: 12.5px;
+    line-height: 1.6;
+    padding: 10px;
+    border-radius: var(--radius-sm);
+    border: 1px solid var(--border);
+    background: var(--bg);
+    color: var(--text);
+}
+
+.stdin-textarea:focus {
+    outline: 2px solid var(--accent);
+    outline-offset: 1px;
+}
+
+
+/* ---- responsive ---- */
+
+@media (max-width: 860px) {
+    .workspace {
+        flex-direction: column;
+    }
+
+    .editor-pane {
+        border-right: none;
+        border-bottom: 1px solid var(--border);
+        flex: 1 1 55%;
+    }
+
+    .side-pane {
+        max-width: none;
+        flex: 1 1 45%;
+    }
+}

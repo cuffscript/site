@@ -1,4 +1,5 @@
-import "./styles/global.css";
+import "./styles/base.css";
+import "./styles/ide.css";
 import { initColorScheme } from "./ui/colorScheme";
 import { renderHeader } from "./ui/header";
 import { icons } from "./ui/icons";
@@ -151,6 +152,16 @@ paneTabs.forEach((tab) => {
     });
 });
 
+// With real-time interactive input (see engine.ts / stdinChannel.ts), input()
+// is answered inline in the console as the program runs, so the separate
+// "미리 쓰는" stdin tab is only needed as a fallback when the page isn't
+// cross-origin isolated (SharedArrayBuffer unavailable).
+if (engine.isInteractive) {
+    el<HTMLElement>("pane-tabs-bar").hidden = true;
+    const stdinPane = paneBodies.stdin;
+    if (stdinPane) stdinPane.hidden = true;
+}
+
 function setRunningUI(running: boolean): void {
     runBtn.hidden = running;
     stopBtn.hidden = !running;
@@ -172,6 +183,10 @@ function runProgram(mode: RunMode): void {
         {
             onStdout: (text) => consoleView.stdout(text),
             onStderr: (text) => consoleView.stderr(text),
+            onStdinRequest: () => {
+                runStatus.textContent = "입력 대기 중…";
+                consoleView.requestInput((value) => engine.provideStdin(value));
+            },
             onDone: ({ success, error, elapsedMs }) => {
                 setRunningUI(false);
                 const time = elapsedMs.toFixed(1);
@@ -186,6 +201,7 @@ function runProgram(mode: RunMode): void {
             },
             onFatal: (message) => {
                 setRunningUI(false);
+                consoleView.cancelInput();
                 runStatus.textContent = "중단됨";
                 consoleView.status(message);
             },
@@ -197,6 +213,7 @@ runBtn.addEventListener("click", () => runProgram("run"));
 astBtn.addEventListener("click", () => runProgram("ast"));
 stopBtn.addEventListener("click", () => {
     engine.stop();
+    consoleView.cancelInput();
     setRunningUI(false);
     runStatus.textContent = "중단됨";
     consoleView.status("사용자가 실행을 중단했습니다.");

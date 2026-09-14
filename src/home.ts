@@ -1,4 +1,4 @@
-import "./styles/global.css";
+import "./styles/base.css";
 import { initColorScheme } from "./ui/colorScheme";
 import { renderHeader } from "./ui/header";
 import { icons } from "./ui/icons";
@@ -9,10 +9,9 @@ renderHeader("home");
 scheduleHighlightCuffBlocks();
 
 const iconTargets: Record<string, string> = {
-    "icon-book": icons.book,
-    "icon-wand": icons.wand,
-    "icon-shield": icons.shield,
-    "icon-globe": icons.globe,
+    "icon-game": icons.game,
+    "icon-feather": icons.feather,
+    "icon-flash": icons.flash,
 };
 
 for (const [id, markup] of Object.entries(iconTargets)) {

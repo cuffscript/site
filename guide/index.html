@@ -57,6 +57,7 @@
                 </div>
                 <div class="guide-toc-group">
                     <h2>참고</h2>
+                    <a href="#common-mistakes">흔히 하는 실수</a>
                     <a href="#limitations">알려진 제한사항</a>
                     <a href="#resources">관련 링크</a>
                 </div>
@@ -413,6 +414,16 @@ print(f"result = {result}")</code></pre>
                         없으므로 <code>or_else</code>가 잡지 않으며, "정상적인 코드가 나쁜 상황(0으로
                         나누기, 없는 파일 등)을 만난 경우"만 <code>or_else</code>로 복구할 수 있습니다.
                     </p>
+                    <p>실제 에러는 이런 형태로 출력됩니다:</p>
+                    <pre><code class="language-text">ERROR: [E4006] Runtime Error at line 4, column 19: division by zero</code></pre>
+                    <p>
+                        <code>or_else</code>로 감싸지 않은 런타임 에러는 프로그램을 그 자리에서
+                        멈춥니다. 이 IDE에서는 출력 패널에 위와 같은 메시지가 빨간 글씨로 표시되고,
+                        실행 상태가 "오류"로 바뀝니다.
+                    </p>
+                    <pre><code class="language-cuff">set number a to 10
+set number b to 0
+print(a / b)   note: or_else가 없으므로 여기서 프로그램이 멈추고 위와 같은 메시지가 출력됨</code></pre>
                 </section>
 
                 <section class="guide-section" id="pattern-basics">
@@ -512,6 +523,15 @@ print(f"result = {result}")</code></pre>
                     </p>
                     <pre><code class="language-cuff">if phone is "010-[num]4-[num]4" do: print("올바른 번호") end
 if filename is "[str]+\.[one:jpg|png|gif]" do: print("이미지 파일") end</code></pre>
+                    <p>몇 가지 예시를 더 보면 토큰이 손에 익습니다:</p>
+                    <pre><code class="language-cuff">note: 16진수 색상 코드 (# 뒤에 hex 문자 6개)
+if color is "#[hex]6" do: print("올바른 색상 코드") end
+
+note: [edge]로 단어 경계를 표시 — "cat"은 통과하지만 "category"는 통과하지 않음
+if find "[edge]cat[edge]" from sentence is not empty do: print("고양이 언급됨") end
+
+note: [!abc] — 모음이 아닌 문자만 3개 연속
+if code is "[!aeiou]3" do: print("모음 없는 3글자") end</code></pre>
                     <div class="callout warn">
                         <span class="callout-title">ReDoS 방어</span>
                         <code>([any]+)+</code>처럼 초보자가 실수하기 쉬운 수량자 중첩으로 인한 파국적
@@ -598,58 +618,154 @@ print(DEFAULT_GREETING)</code></pre>
                 <section class="guide-section" id="dlc">
                     <h2>내장 DLC 목록</h2>
                     <p>
-                        공식 내장 라이브러리는 <code>use DLC:이름</code> 한 줄로 불러옵니다.
+                        공식 내장 라이브러리는 <code>use DLC:이름</code> 한 줄로 불러옵니다. 함수는
+                        모두 전역 이름으로 등록되어, <code>DLC:</code> 접두사 없이 바로
+                        호출합니다.
                     </p>
+
+                    <h3><code>DLC:math</code></h3>
+                    <pre><code class="language-cuff">use DLC:math
+
+print(sqrt(16))       note: 4
+print(abs(-5))        note: 5
+print(pow(2, 10))     note: 1024
+print(round(3.6))     note: 4
+print(floor(3.9))     note: 3
+print(ceil(3.1))      note: 4
+print(min(4, 1, 9))   note: 1 — 인자를 몇 개든 받을 수 있음
+print(max(4, 1, 9))   note: 9</code></pre>
+
+                    <h3><code>DLC:string</code></h3>
+                    <pre><code class="language-cuff">use DLC:string
+
+print(upper("hello"))              note: "HELLO"
+print(lower("HELLO"))              note: "hello"
+print(trim("  padded  "))          note: "padded"
+print(length("hello"))             note: 5
+print(contains("hello world", "world"))   note: true
+print(starts_with("hello", "he"))  note: true
+print(ends_with("hello", "lo"))    note: true</code></pre>
+
+                    <h3><code>DLC:time</code> / <code>DLC:random</code></h3>
+                    <pre><code class="language-cuff">use DLC:time
+use DLC:random
+
+print(now())               note: 유닉스 타임스탬프(초, 실수) — timestamp()도 완전히 동일한 함수
+set number roll to random_int(1, 6)
+print(f"주사위: {roll}")   note: 1~6 사이의 정수, 양 끝 포함
+print(random())            note: 0.0 이상 1.0 미만의 실수</code></pre>
+
+                    <h3><code>DLC:list</code></h3>
+                    <p>
+                        원본 리스트를 바꾸지 않고 <strong>새 리스트를 반환</strong>하는 함수형
+                        스타일입니다. <code>sort</code>는 리스트가 전부 숫자이거나 전부 문자열일
+                        때만 동작합니다.
+                    </p>
+                    <pre><code class="language-cuff">use DLC:list
+use DLC:convert
+
+set list scores to [5, 2, 8, 1, 9, 2]
+print(sort(scores))      note: [1, 2, 2, 5, 8, 9] — scores 자체는 그대로
+print(reverse(scores))   note: [2, 9, 1, 8, 2, 5]
+print(unique(scores))    note: [5, 2, 8, 1, 9]
+
+note: join()은 문자열 리스트만 받으므로, 숫자는 to_str()로 먼저 변환
+set list score_strs to []
+loop repeat i to 1 ~ 5 do:
+    add to_str(scores[i]) to score_strs
+end
+print(join(score_strs, ", "))   note: "5, 2, 8, 1, 9"</code></pre>
+
+                    <h3><code>DLC:convert</code></h3>
+                    <pre><code class="language-cuff">use DLC:convert
+
+set number n to to_number("42.5")
+print(n + 1)              note: 43.5
+print(to_str(123) + "!")  note: "123!"
+print(to_boolean(""))     note: false — 빈 문자열/0/empty는 false, 그 외 문자열은 true</code></pre>
+
+                    <h3><code>DLC:network</code></h3>
+                    <p>
+                        <code>fetch</code>, <code>get</code>, <code>post</code>가 등록되어
+                        있지만, 실제 네트워크 접근은 엔진 자체에 샌드박스 구현이 없어 항상 "호스트가
+                        제공해야 한다"는 런타임 에러를 던집니다. <code>use DLC:network</code>
+                        선언 자체는 문제없이 되므로, <code>or_else</code>로 감싸 실패를 처리하는
+                        연습을 해볼 수 있습니다.
+                    </p>
+                    <pre><code class="language-cuff">use DLC:network
+
+set str body to fetch("https://example.com") or_else do:
+    print("네트워크 DLC는 이 환경에서 사용할 수 없습니다")
+    change body to ""
+end</code></pre>
+                    <div class="callout">
+                        <span class="callout-title">라이브러리 이름이 겹치면?</span>
+                        <code>use DLC:list</code>와 <code>use DLC:convert</code>처럼 여러 DLC를
+                        동시에 불러와도 함수 이름이 겹치지 않는 한 문제없이 함께 쓸 수 있습니다.
+                        위 <code>DLC:list</code> 예제에서도 <code>to_str</code>를 쓰기 위해
+                        <code>DLC:convert</code>를 함께 불러왔습니다.
+                    </div>
+                </section>
+
+                <section class="guide-section" id="common-mistakes">
+                    <h2>흔히 하는 실수</h2>
                     <table class="ref-table">
                         <thead>
                             <tr>
-                                <th>DLC</th>
-                                <th>대표 함수</th>
+                                <th>실수</th>
+                                <th>왜 문제인가</th>
+                                <th>고치는 법</th>
                             </tr>
                         </thead>
                         <tbody>
                             <tr>
-                                <td><code>DLC:math</code></td>
-                                <td><code>sqrt</code>, <code>abs</code>, <code>pow</code>, <code>round</code>,
-                                    <code>floor</code>, <code>ceil</code>, <code>min</code>, <code>max</code>
-                                </td>
+                                <td><code>list[0]</code></td>
+                                <td>인덱스는 <code>1</code>번부터 시작합니다. <code>0</code>은
+                                    존재하지 않는 위치입니다.</td>
+                                <td>첫 번째 요소는 <code>list[1]</code>.</td>
                             </tr>
                             <tr>
-                                <td><code>DLC:string</code></td>
-                                <td><code>upper</code>, <code>lower</code>, <code>trim</code>, <code>length</code>,
-                                    <code>contains</code>, <code>starts_with</code>, <code>ends_with</code>
-                                </td>
+                                <td><code>if x is 5 do :</code></td>
+                                <td>콜론 앞에 공백이 있으면 문법 에러입니다.</td>
+                                <td><code>do:</code>처럼 콜론을 앞 단어에 바로 붙입니다.</td>
                             </tr>
                             <tr>
-                                <td><code>DLC:time</code></td>
-                                <td><code>now</code>, <code>timestamp</code></td>
+                                <td><code>set constant number retries to 3</code></td>
+                                <td>상수 이름이 전체 대문자가 아닙니다.</td>
+                                <td><code>RETRIES</code>처럼 대문자로 씁니다.</td>
                             </tr>
                             <tr>
-                                <td><code>DLC:random</code></td>
-                                <td><code>random</code>, <code>random_int</code></td>
+                                <td>상수를 <code>change</code>로 수정</td>
+                                <td>상수는 선언 이후 값을 바꿀 수 없습니다.</td>
+                                <td>애초에 값이 바뀔 변수라면 <code>constant</code> 없이
+                                    선언합니다.</td>
                             </tr>
                             <tr>
-                                <td><code>DLC:list</code></td>
-                                <td><code>sort</code>, <code>reverse</code>, <code>join</code>, <code>unique</code> (원본은
-                                    바꾸지 않고 새 리스트를 반환)</td>
+                                <td>함수 안에서 전역 변수를 바로 <code>change</code></td>
+                                <td>함수는 기본적으로 자신만의 로컬 스코프를 가집니다.</td>
+                                <td>먼저 <code>change 이름 to global</code>로 선언한 뒤 값을
+                                    바꿉니다.</td>
                             </tr>
                             <tr>
-                                <td><code>DLC:convert</code></td>
-                                <td><code>to_number</code>, <code>to_str</code>, <code>to_boolean</code></td>
+                                <td><code>"[num]+"</code>로 정수 전체를 검사했는데 실패</td>
+                                <td><code>is</code>/<code>IS</code>는 부분이 아니라
+                                    <strong>전체 일치</strong>를 검사합니다.</td>
+                                <td>문자열 일부만 확인하려면 <code>find</code>를 씁니다.</td>
                             </tr>
                             <tr>
-                                <td><code>DLC:network</code></td>
-                                <td><code>fetch</code>, <code>get</code>, <code>post</code></td>
+                                <td><code>set number x to input()</code></td>
+                                <td><code>input()</code>은 항상 <code>str</code>을 반환합니다.</td>
+                                <td><code>to_number(input())</code>처럼 <code>DLC:convert</code>로
+                                    변환합니다.</td>
+                            </tr>
+                            <tr>
+                                <td>블록을 열고 <code>end</code>를 빠뜨림</td>
+                                <td><code>if</code>/<code>loop</code>/<code>function</code> 등
+                                    모든 블록은 여는 만큼 <code>end</code>가 있어야 합니다.</td>
+                                <td>들여쓰기를 기준으로 블록이 하나씩 정확히 닫혔는지 확인합니다.</td>
                             </tr>
                         </tbody>
                     </table>
-                    <div class="callout warn">
-                        <span class="callout-title">DLC:network는 이 IDE에서 항상 실패합니다</span>
-                        네트워크 접근은 엔진 자체에 샌드박스 구현이 없어, <code>DLC:network</code>의
-                        함수를 호출하면 항상 "호스트가 제공해야 한다"는 런타임 에러를 냅니다.
-                        <code>use DLC:network</code> 선언 자체는 문제없이 되므로, <code>or_else</code>로
-                        감싸 실패를 처리하는 코드를 연습해 볼 수 있습니다.
-                    </div>
                 </section>
 
                 <section class="guide-section" id="limitations">
@@ -673,6 +789,11 @@ print(DEFAULT_GREETING)</code></pre>
 
                 <section class="guide-section" id="resources">
                     <h2>관련 링크</h2>
+                    <p>
+                        여기서 다룬 내용은 IDE의 <strong>예제 불러오기</strong> 메뉴에 그대로
+                        실행해 볼 수 있는 예제 10개로 준비되어 있습니다. 기초부터 순서대로
+                        따라가며 직접 돌려보는 것을 추천합니다.
+                    </p>
                     <ul>
                         <li><a href="https://github.com/cuffscript/cuffscript" target="_blank"
                                 rel="noreferrer">cuffscript — 엔진/CLI 소스코드</a></li>

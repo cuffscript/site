@@ -16,8 +16,7 @@ export const icons = {
   close: svg('<path d="M6 6l12 12"/><path d="M18 6L6 18"/>'),
   external: svg('<path d="M7 17L17 7"/><path d="M9 7h8v8"/>'),
   tree: svg('<path d="M4 5h4M4 12h7M4 19h10"/><circle cx="19" cy="5" r="1.6" fill="currentColor" stroke="none"/><circle cx="19" cy="12" r="1.6" fill="currentColor" stroke="none"/><circle cx="19" cy="19" r="1.6" fill="currentColor" stroke="none"/>'),
-  book: svg('<path d="M4 5.5A2.5 2.5 0 0 1 6.5 3H20v15H6.5A2.5 2.5 0 0 0 4 20.5z"/><path d="M4 5.5v15"/><path d="M20 18H6.5A2.5 2.5 0 0 0 4 20.5"/>'),
-  wand: svg('<path d="M5 19L18 6"/><path d="M15 4l1 2 2 1-2 1-1 2-1-2-2-1 2-1z"/><path d="M4.5 15.5l.6 1.4 1.4.6-1.4.6-.6 1.4-.6-1.4-1.4-.6 1.4-.6z"/>'),
-  shield: svg('<path d="M12 3l7 3v6c0 4.5-3 7.5-7 9-4-1.5-7-4.5-7-9V6z"/><path d="M9 12l2 2 4-4"/>'),
-  globe: svg('<circle cx="12" cy="12" r="9"/><path d="M3 12h18"/><path d="M12 3a14 14 0 0 1 0 18a14 14 0 0 1 0-18z"/>'),
+  game: svg('<rect x="3" y="8" width="18" height="10" rx="5"/><path d="M8 11v4M6 13h4"/><circle cx="16" cy="12" r="1" fill="currentColor" stroke="none"/><circle cx="18" cy="14" r="1" fill="currentColor" stroke="none"/>'),
+  feather: svg('<path d="M20 4c-6 0-14 4-16 16 12-2 16-10 16-16z"/><path d="M4 20l6-6"/><path d="M8 16l2.5-1M11 13l2.5-1M14 10l2.5-1"/>'),
+  flash: svg('<path d="M13 2L4 14h6l-1 8 9-12h-6l1-8z" fill="currentColor" stroke="none"/>'),
 };
