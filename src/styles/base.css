@@ -128,6 +128,33 @@ pre {
     flex-shrink: 0;
     border-bottom: 1px solid var(--border);
     background: var(--bg);
+    overflow-x: auto;
+    overflow-y: hidden;
+    scrollbar-width: thin;
+    scrollbar-color: var(--border) transparent;
+}
+
+.site-header::-webkit-scrollbar {
+    height: 4px;
+}
+
+.site-header::-webkit-scrollbar-track {
+    background: transparent;
+}
+
+.site-header::-webkit-scrollbar-thumb {
+    background: var(--border);
+    border-radius: 999px;
+}
+
+.site-header::-webkit-scrollbar-thumb:hover {
+    background: var(--text-faint);
+}
+
+.brand,
+.site-nav,
+.header-actions {
+    flex-shrink: 0;
 }
 
 .brand {
@@ -511,6 +538,13 @@ pre {
     text-align: center;
 }
 
+.home-logo {
+    display: block;
+    margin: 0 auto 10px;
+    width: 110px;
+    height: 110px;
+}
+
 .home-kicker {
     display: inline-flex;
     align-items: center;
@@ -753,3 +787,4 @@ pre {
     .home-hero h1 {
         font-size: 32px;
     }
+}
