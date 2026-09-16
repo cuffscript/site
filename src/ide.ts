@@ -6,6 +6,7 @@ import { icons } from "./ui/icons";
 import { EditorManager } from "./ide/editorManager";
 import { ConsoleView } from "./ide/console";
 import { TabBar } from "./ide/tabs";
+import { initResizeHandle } from "./ide/resizer";
 import { CuffEngine } from "./engine/engine";
 import { loadProject, saveProject, buildShareUrl, type ProjectState } from "./ide/state";
 import { EXAMPLES } from "./examples";
@@ -152,15 +153,11 @@ paneTabs.forEach((tab) => {
     });
 });
 
-// With real-time interactive input (see engine.ts / stdinChannel.ts), input()
-// is answered inline in the console as the program runs, so the separate
-// "미리 쓰는" stdin tab is only needed as a fallback when the page isn't
-// cross-origin isolated (SharedArrayBuffer unavailable).
-if (engine.isInteractive) {
-    el<HTMLElement>("pane-tabs-bar").hidden = true;
-    const stdinPane = paneBodies.stdin;
-    if (stdinPane) stdinPane.hidden = true;
-}
+// Real-time interactive input (see engine.ts / stdinChannel.ts) answers
+// input() inline in the console as the program runs — but since it depends
+// on cross-origin isolation actually reaching this worker (not just this
+// page), the "미리 쓰는" stdin tab stays available at all times as a
+// guaranteed fallback rather than being hidden ahead of a run.
 
 function setRunningUI(running: boolean): void {
     runBtn.hidden = running;
@@ -168,6 +165,8 @@ function setRunningUI(running: boolean): void {
     astBtn.disabled = running;
     exampleSelect.disabled = running;
 }
+
+initResizeHandle(el("workspace"), el("editor-pane"), el("resize-handle"));
 
 function runProgram(mode: RunMode): void {
     const files = editor.snapshotFiles();
@@ -186,6 +185,11 @@ function runProgram(mode: RunMode): void {
             onStdinRequest: () => {
                 runStatus.textContent = "입력 대기 중…";
                 consoleView.requestInput((value) => engine.provideStdin(value));
+            },
+            onStdinUnavailable: () => {
+                consoleView.status(
+                    "이 환경에서는 실시간 입력을 쓸 수 없어, 표준 입력 탭에 미리 적어둔 내용으로 대신했습니다.",
+                );
             },
             onDone: ({ success, error, elapsedMs }) => {
                 setRunningUI(false);

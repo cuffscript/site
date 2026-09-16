@@ -21,6 +21,10 @@ export interface RunCallbacks {
     // Fired when the running program calls input() and is now blocked
     // waiting for a line — only ever fires when isInteractive is true.
     onStdinRequest?: () => void;
+    // Fired once if the interactive channel turned out not to actually work
+    // in the worker (see stdinChannel.ts) — the run continues, with this and
+    // any further input() in it treated as end-of-input.
+    onStdinUnavailable?: () => void;
     onDone?: (result: { success: boolean; error: string; elapsedMs: number }) => void;
     onFatal?: (message: string) => void;
 }
@@ -124,6 +128,11 @@ export class CuffEngine {
                 // toward the run timeout while we wait on the person.
                 this.clearTimeoutHandle();
                 this.callbacks?.onStdinRequest?.();
+                break;
+            case "stdin-unavailable":
+                this.stdinChannel = null;
+                this.armTimeout(event.id);
+                this.callbacks?.onStdinUnavailable?.();
                 break;
             case "done":
                 this.clearTimeoutHandle();

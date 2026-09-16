@@ -27,11 +27,14 @@
             <button id="download-btn" class="btn" type="button" title="현재 파일 다운로드"></button>
         </div>
 
-        <div class="workspace">
-            <div class="editor-pane">
+        <div id="workspace" class="workspace">
+            <div id="editor-pane" class="editor-pane">
                 <div id="tab-bar" class="tab-bar"></div>
                 <div id="editor-host" class="editor-host"></div>
             </div>
+
+            <div id="resize-handle" class="resize-handle" role="separator" aria-orientation="vertical"
+                aria-label="편집기와 출력 패널 크기 조절" tabindex="0"></div>
 
             <div class="side-pane">
                 <div id="pane-tabs-bar" class="pane-tabs">
@@ -44,8 +47,10 @@
                 <div id="pane-stdin" class="pane-body">
                     <div class="stdin-panel">
                         <p class="stdin-hint">
-                            <code>input()</code>이 호출될 때 위에서부터 한 줄씩 읽어옵니다. 프로그램 실행 전에
-                            필요한 입력을 미리 적어두세요. 다 쓰면 빈 문자열이 반환됩니다.
+                            <code>input()</code>이 호출되면, 이 환경에서 실시간 입력이 지원될 경우
+                            실행 결과 화면에 바로 입력할 수 있는 칸이 나타납니다. 지원되지 않는
+                            경우에는 여기 적어둔 내용을 위에서부터 한 줄씩 읽어갑니다. 다 쓰면 빈
+                            문자열이 반환됩니다.
                         </p>
                         <textarea id="stdin-input" class="stdin-textarea" placeholder="예: 15&#10;3.5"
                             spellcheck="false"></textarea>

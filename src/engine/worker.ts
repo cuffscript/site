@@ -5,7 +5,7 @@ declare const self: DedicatedWorkerGlobalScope;
 import createCuffScriptModule from "cuffscript-wasm";
 import type { CuffScriptModule } from "cuffscript-wasm";
 import type { CuffFile, RunRequest, WorkerEvent } from "./types";
-import { openStdinChannel, requestLineBlocking, type StdinChannel } from "./stdinChannel";
+import { interactiveStdinSupported, openStdinChannel, requestLineBlocking, type StdinChannel } from "./stdinChannel";
 
 let modulePromise: Promise<CuffScriptModule> | null = null;
 let currentId = 0;
@@ -22,12 +22,21 @@ function nextStdinByte(): number | null | undefined {
     if (!interactiveChannel) return null;
 
     // input() ran out of buffered bytes: ask the main thread for a line and
-    // block this worker (not the main thread) until it arrives.
-    post({ id: currentId, type: "stdin-request" });
-    const line = requestLineBlocking(interactiveChannel);
-    stdinBytes = Array.from(new TextEncoder().encode(line + "\n"));
-    stdinPos = 0;
-    return stdinPos < stdinBytes.length ? stdinBytes[stdinPos++] : null;
+    // block this worker (not the main thread) until it arrives. If the
+    // channel turns out not to actually work here (e.g. this worker didn't
+    // inherit cross-origin isolation, so Atomics.wait throws), stop trying
+    // for the rest of this run and behave like EOF instead of crashing it.
+    try {
+        post({ id: currentId, type: "stdin-request" });
+        const line = requestLineBlocking(interactiveChannel);
+        stdinBytes = Array.from(new TextEncoder().encode(line + "\n"));
+        stdinPos = 0;
+        return stdinPos < stdinBytes.length ? stdinBytes[stdinPos++] : null;
+    } catch {
+        interactiveChannel = null;
+        post({ id: currentId, type: "stdin-unavailable" });
+        return null;
+    }
 }
 
 function loadModule(): Promise<CuffScriptModule> {
@@ -76,7 +85,7 @@ self.onmessage = async (event: MessageEvent<RunRequest>) => {
     currentId = req.id;
     stdinBytes = Array.from(new TextEncoder().encode(req.stdin));
     stdinPos = 0;
-    interactiveChannel = req.stdinBuffer ? openStdinChannel(req.stdinBuffer) : null;
+    interactiveChannel = req.stdinBuffer && interactiveStdinSupported() ? openStdinChannel(req.stdinBuffer) : null;
 
     const entryFile = req.files.find((f) => f.path === req.entryPath);
     if (!entryFile) {
