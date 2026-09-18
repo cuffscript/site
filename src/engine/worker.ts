@@ -5,20 +5,40 @@ declare const self: DedicatedWorkerGlobalScope;
 import createCuffScriptModule from "cuffscript-wasm";
 import type { CuffScriptModule } from "cuffscript-wasm";
 import type { CuffFile, RunRequest, WorkerEvent } from "./types";
-import { interactiveStdinSupported, openStdinChannel, requestLineBlocking, type StdinChannel } from "./stdinChannel";
+import { interactiveStdinSupported, openStdinChannel, requestLineBlocking, workerCanUseAtomicsWait, type StdinChannel } from "./stdinChannel";
 
 let modulePromise: Promise<CuffScriptModule> | null = null;
 let currentId = 0;
 let stdinBytes: number[] = [];
 let stdinPos = 0;
 let interactiveChannel: StdinChannel | null = null;
+// Emscripten's stdin device does not stop reading at "\n" the way a real
+// terminal does: after input() is satisfied, the C stdio layer's underlying
+// read() keeps calling this callback trying to fill its own buffer (often
+// 1KB+), not just one line. Without this flag, that "extra" call looked
+// exactly like a fresh input() request and triggered another full prompt —
+// this is what caused the repeat-prompt bug. Once true, the *next* call is
+// known to be that trailing over-read rather than a new request, so it
+// answers with "nothing more right now" (undefined) instead of fetching
+// another line — precisely how a real line-buffered tty behaves.
+let justFinishedLine = false;
 
 function post(event: WorkerEvent): void {
     self.postMessage(event);
 }
 
 function nextStdinByte(): number | null | undefined {
-    if (stdinPos < stdinBytes.length) return stdinBytes[stdinPos++];
+    if (stdinPos < stdinBytes.length) {
+        const byte = stdinBytes[stdinPos++];
+        justFinishedLine = stdinPos >= stdinBytes.length;
+        return byte;
+    }
+
+    if (justFinishedLine) {
+        justFinishedLine = false;
+        return undefined;
+    }
+
     if (!interactiveChannel) return null;
 
     // input() ran out of buffered bytes: ask the main thread for a line and
@@ -31,7 +51,7 @@ function nextStdinByte(): number | null | undefined {
         const line = requestLineBlocking(interactiveChannel);
         stdinBytes = Array.from(new TextEncoder().encode(line + "\n"));
         stdinPos = 0;
-        return stdinPos < stdinBytes.length ? stdinBytes[stdinPos++] : null;
+        return nextStdinByte();
     } catch {
         interactiveChannel = null;
         post({ id: currentId, type: "stdin-unavailable" });
@@ -86,6 +106,13 @@ self.onmessage = async (event: MessageEvent<RunRequest>) => {
     stdinBytes = Array.from(new TextEncoder().encode(req.stdin));
     stdinPos = 0;
     interactiveChannel = req.stdinBuffer && interactiveStdinSupported() ? openStdinChannel(req.stdinBuffer) : null;
+    if (interactiveChannel && !workerCanUseAtomicsWait()) {
+        // Confirmed upfront, before any input() is even reached: this worker
+        // didn't actually get real Atomics.wait support, so never pretend to
+        // — no misleading "waiting for input" prompt that nothing answers.
+        interactiveChannel = null;
+        post({ id: req.id, type: "stdin-unavailable" });
+    }
 
     const entryFile = req.files.find((f) => f.path === req.entryPath);
     if (!entryFile) {

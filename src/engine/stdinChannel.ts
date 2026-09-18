@@ -37,6 +37,24 @@ export function interactiveStdinSupported(): boolean {
     );
 }
 
+// Worker-only: interactiveStdinSupported() can be right on the main thread
+// and still wrong for the worker (a worker only inherits cross-origin
+// isolation from a genuinely isolated page — if that isn't actually reaching
+// it, the two can disagree). This proves Atomics.wait truly works *in this
+// worker* using a throwaway buffer, without ever touching the real channel or
+// actually blocking: the compare value can never match, so it returns
+// instantly either way. Never call this from the main thread — Atomics.wait
+// unconditionally throws there regardless of isolation.
+export function workerCanUseAtomicsWait(): boolean {
+    try {
+        const probe = new Int32Array(new SharedArrayBuffer(4));
+        Atomics.wait(probe, 0, 1, 0);
+        return true;
+    } catch {
+        return false;
+    }
+}
+
 export function createStdinBuffer(): SharedArrayBuffer {
     return new SharedArrayBuffer(CONTROL_SLOTS * Int32Array.BYTES_PER_ELEMENT + DATA_CAPACITY);
 }

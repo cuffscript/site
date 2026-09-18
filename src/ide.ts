@@ -51,6 +51,14 @@ const consoleView = new ConsoleView(consoleEl);
 const editor = new EditorManager(editorHost);
 const engine = new CuffEngine();
 
+const stdinDiagnostic = el<HTMLElement>("stdin-diagnostic");
+function renderStdinDiagnostic(available: boolean): void {
+    stdinDiagnostic.textContent = available
+        ? "\u2713 이 브라우저에서 실시간 입력을 지원합니다."
+        : "\u2717 이 브라우저/배포 환경에서는 실시간 입력을 지원하지 않아, 이 탭의 내용을 사용합니다.";
+}
+renderStdinDiagnostic(engine.isInteractive);
+
 let saveTimer: number | undefined;
 function scheduleSave(): void {
     if (saveTimer !== undefined) window.clearTimeout(saveTimer);
@@ -187,12 +195,14 @@ function runProgram(mode: RunMode): void {
                 consoleView.requestInput((value) => engine.provideStdin(value));
             },
             onStdinUnavailable: () => {
+                renderStdinDiagnostic(false);
                 consoleView.status(
                     "이 환경에서는 실시간 입력을 쓸 수 없어, 표준 입력 탭에 미리 적어둔 내용으로 대신했습니다.",
                 );
             },
             onDone: ({ success, error, elapsedMs }) => {
                 setRunningUI(false);
+                consoleView.cancelInput();
                 const time = elapsedMs.toFixed(1);
                 if (success) {
                     runStatus.textContent = `완료 (${time}ms)`;
