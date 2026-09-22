@@ -1,5 +1,10 @@
 # CuffScript website
 
+![TypeScript](https://img.shields.io/badge/TypeScript-3178C6?style=flat&logo=typescript&logoColor=white)
+![Vite](https://img.shields.io/badge/Vite-646CFF?style=flat&logo=vite&logoColor=white)
+
+---
+
 Website for [CuffScript](https://github.com/cuffscript/cuffscript): a landing
 page, a browser IDE (editor, multi-file projects, stdin, an AST/token
 viewer), and a full language guide — built with Vite + TypeScript +
