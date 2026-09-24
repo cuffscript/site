@@ -17,7 +17,7 @@
     "@codemirror/view": "^6.34.0",
     "@eslint/js": "^10.0.1",
     "@lezer/highlight": "^1.2.0",
-    "cuffscript-wasm": "^1.5.0-opt",
+    "cuffscript-wasm": "^2.0.0",
     "typescript-eslint": "^8.70.0"
   },
   "devDependencies": {
