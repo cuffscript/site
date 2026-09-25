@@ -1,4 +1,5 @@
 node_modules/
 dist/
+renew/
 .DS_Store
 *.local
