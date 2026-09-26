@@ -4,7 +4,9 @@ use DLC:math
 use DLC:string
 use DLC:random
 use DLC:list
+use DLC:map
 use DLC:convert
+use DLC:json
 
 print(sqrt(16))
 print(abs(-5))
@@ -34,3 +36,19 @@ set number n to to_number("42.5")
 print(n + 1)
 print(to_str(123) + "!")
 print(to_boolean(""))
+
+note: DLC:map — 맵을 순회하거나 합칠 때 사용
+set map profile to {"name": "Bob", "level": 12}
+print(keys(profile))
+print(values(profile))
+print(has_key(profile, "level"))
+
+set map defaults to {"volume": 50, "difficulty": "normal"}
+set map overrides to {"difficulty": "hard"}
+print(merge(defaults, overrides))
+
+note: DLC:json — CuffScript 값과 JSON 문자열 사이를 오고 감
+set str packed to to_json(profile)
+print(packed)
+set map unpacked to from_json(packed)
+print(unpacked["name"])

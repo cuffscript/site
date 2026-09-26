@@ -143,6 +143,18 @@ change name to "Bob"</code></pre>
                     </p>
                     <pre><code class="language-cuff">set constant number MAX_RETRIES to 3
 set constant str API_URL to "https://cufflang.dev"</code></pre>
+                    <p>
+                        <code>constant</code>은 <code>list</code>에도 쓸 수 있습니다. 파이썬의 튜플처럼
+                        완전히 읽기 전용인 리스트가 되어, 추가·삭제·인덱스 대입이 전부 런타임 에러입니다 —
+                        다른 변수에 대입하거나 함수 인자로 넘겨도 그 값 자체가 얼어붙어 있으므로 우회할 수
+                        없습니다. 다만 <em>얕은</em> 불변성이라, 얼린 리스트 안에 들어있는 일반 리스트나 맵은
+                        여전히 자유롭게 수정할 수 있습니다. <code>constant map</code>은 아직 지원하지
+                        않습니다.
+                    </p>
+                    <pre><code class="language-cuff">set constant list PRIMES to [2, 3, 5, 7, 11]
+
+add 13 to PRIMES          note: 런타임 에러 — 얼려진 리스트에는 추가 불가
+change PRIMES[1] to 0     note: 이것도 마찬가지로 런타임 에러</code></pre>
                 </section>
 
                 <section class="guide-section" id="types">
@@ -298,7 +310,7 @@ remove "level" from profile</code></pre>
                         <code>return</code>을 씁니다. 호출은 괄호 <code>()</code>만 사용하며
                         <code>do:</code>는 붙이지 않습니다.
                     </p>
-                    <pre><code class="language-cuff">set returnable function fib(n) do:
+                    <pre><code class="language-cuff">set returnable func fib(n) do:
     if n &lt;= 1 do:
         return n
     end
@@ -309,6 +321,27 @@ print(f"fib(10) = {fib(10)}")</code></pre>
                         중첩 함수 정의와 클로저는 지원하지 않습니다. 함수는 전역 스코프와 자기 자신의
                         로컬 스코프만 볼 수 있습니다.
                     </p>
+                    <p>
+                        <code>returnable</code>, <code>async</code>, <code>pure</code> 세 수식어는 순서
+                        상관없이 자유롭게 조합할 수 있습니다. <code>pure</code>가 붙은 함수는 자기 몸통
+                        안에서 전역 변수를 읽거나 쓸 수 없습니다 — <code>change 이름 to global</code> 브리지도
+                        예외가 아니며, 시도하는 즉시 <code>PureFunctionGlobalAccess (E4027)</code> 런타임
+                        에러가 발생합니다. 제약은 그 함수 자신의 몸통에만 적용되므로, <code>pure</code> 함수가
+                        <code>pure</code>가 아닌 다른 함수를 호출하는 것은 문제없습니다.
+                    </p>
+                    <pre><code class="language-cuff">set number shared_state to 0
+
+set pure returnable func add_two(x) do:
+    note: 매개변수·지역 변수만 사용하므로 문제없음
+    return x + 2
+end
+
+print(add_two(40))   note: 42
+
+set pure func broken() do:
+    change shared_state to global   note: 여기서 즉시 E4027 런타임 에러
+    change shared_state to 1
+end</code></pre>
                 </section>
 
                 <section class="guide-section" id="async">
@@ -319,11 +352,11 @@ print(f"fib(10) = {fib(10)}")</code></pre>
                         실행됩니다. <code>await</code>를 붙이면 지금 바로 실행되고 결과값(있다면)을
                         돌려받습니다.
                     </p>
-                    <pre><code class="language-cuff">set async function notify() do:
+                    <pre><code class="language-cuff">set async func notify() do:
     print("[비동기] 처리 완료")
 end
 
-set async returnable function fetch_score() do:
+set async returnable func fetch_score() do:
     return 87
 end
 
@@ -344,7 +377,7 @@ note: 이후에 큐에 있던 notify()가 실행됩니다.</code></pre>
                     </p>
                     <pre><code class="language-cuff">set number counter to 0
 
-set function increment() do:
+set func increment() do:
     change counter to global
     change counter to counter + 1
 end
@@ -416,6 +449,11 @@ print(f"result = {result}")</code></pre>
                                 <td>가능</td>
                             </tr>
                             <tr>
+                                <td><code>6000~6999</code></td>
+                                <td>Resource (실행 예산 초과)</td>
+                                <td>불가능</td>
+                            </tr>
+                            <tr>
                                 <td><code>9000~9999</code></td>
                                 <td>Internal (엔진 내부 버그)</td>
                                 <td>불가능</td>
@@ -426,6 +464,9 @@ print(f"result = {result}")</code></pre>
                         프로그램 자체가 잘못된 경우(문법 오류 등)는 이미 실행 중인 코드 안에서 나타날 수
                         없으므로 <code>or_else</code>가 잡지 않으며, "정상적인 코드가 나쁜 상황(0으로
                         나누기, 없는 파일 등)을 만난 경우"만 <code>or_else</code>로 복구할 수 있습니다.
+                        6000번대는 CLI의 <code>--max-steps</code>/<code>--timeout</code> 실행 예산을 넘었을
+                        때만 발생하며 (기본은 꺼져 있음), "프로그램이 통제를 벗어났다"는 신호이기 때문에
+                        <code>or_else</code>가 일부러 잡지 않도록 설계되어 있습니다.
                     </p>
                     <p>실제 에러는 이런 형태로 출력됩니다:</p>
                     <pre><code class="language-text">ERROR: [E4006] Runtime Error at line 4, column 19: division by zero</code></pre>
@@ -619,7 +660,7 @@ print(tickets[1])</code></pre>
                     </p>
                     <pre><code class="language-cuff">note: lib/greetings.cuff
 set constant str DEFAULT_GREETING to "Hello"
-set returnable function greet(name) do:
+set returnable func greet(name) do:
     return DEFAULT_GREETING + ", " + name + "!"
 end</code></pre>
                     <pre><code class="language-cuff">note: main.cuff
@@ -689,6 +730,33 @@ loop repeat i to 1 ~ 5 do:
 end
 print(join(score_strs, ", "))   note: "5, 2, 8, 1, 9"</code></pre>
 
+                    <h3><code>DLC:map</code></h3>
+                    <p>
+                        맵은 기본적으로 키를 나열할 방법이 없으므로, 순회가 필요하면 이 라이브러리를
+                        불러옵니다. <code>keys</code>/<code>values</code>는 맵의 삽입 순서를 그대로
+                        따르는 리스트를 반환합니다.
+                    </p>
+                    <pre><code class="language-cuff">use DLC:map
+
+set map profile to {"name": "Bob", "level": 12}
+
+print(keys(profile))          note: ["name", "level"]
+print(values(profile))        note: ["Bob", 12]
+print(has_key(profile, "level"))   note: true
+
+note: loop repeat는 항상 숫자 범위(start ~ end)만 돕니다 — 리스트를 돌 땐
+note: 인덱스로 순회합니다. entries()는 [키, 값] 쌍의 리스트를 반환합니다.
+set list pairs to entries(profile)
+loop repeat i to 1 ~ length(pairs) do:
+    set list entry to pairs[i]
+    print(f"{entry[1]} = {entry[2]}")
+end
+
+note: merge()는 새 맵을 반환 — 키가 겹치면 두 번째 인자가 이깁니다
+set map defaults to {"volume": 50, "difficulty": "normal"}
+set map overrides to {"difficulty": "hard"}
+print(merge(defaults, overrides))   note: {"volume": 50, "difficulty": "hard"}</code></pre>
+
                     <h3><code>DLC:convert</code></h3>
                     <pre><code class="language-cuff">use DLC:convert
 
@@ -696,21 +764,58 @@ set number n to to_number("42.5")
 print(n + 1)              note: 43.5
 print(to_str(123) + "!")  note: "123!"
 print(to_boolean(""))     note: false — 빈 문자열/0/empty는 false, 그 외 문자열은 true</code></pre>
+                    <p>
+                        <code>to_number</code>/<code>to_str</code>/<code>to_boolean</code>은 사실 항상
+                        쓸 수 있는 코어 내장 함수라 <code>use DLC:convert</code> 없이도 바로 호출됩니다.
+                        선언 자체는 문제없이 되고(같은 함수를 다시 등록할 뿐), 어디서 왔는지 코드에
+                        드러내고 싶을 때 명시적으로 씁니다.
+                    </p>
+
+                    <h3><code>DLC:json</code></h3>
+                    <pre><code class="language-cuff">use DLC:json
+
+set map user to {"name": "Alice", "level": 7, "active": true}
+set str packed to to_json(user)
+print(packed)                 note: {"name":"Alice","level":7,"active":true}
+print(to_json(user, 2))       note: 들여쓰기 2칸으로 예쁘게 출력
+
+set map parsed to from_json(packed)
+print(parsed["name"])         note: "Alice"</code></pre>
+                    <p>
+                        JSON의 object/array/string/number/true/false/null은 각각 CuffScript의
+                        <code>map</code>/<code>list</code>/<code>str</code>/<code>number</code>/<code>boolean</code>/<code>empty</code>로
+                        대응됩니다. <code>from_json</code>은 RFC 8259를 엄격히 따르므로 트레일링 콤마,
+                        홑따옴표, 따옴표 없는 키처럼 흔한 변형은 <code>ValueError</code>로 거부됩니다.
+                    </p>
 
                     <h3><code>DLC:network</code></h3>
                     <p>
-                        <code>fetch</code>, <code>get</code>, <code>post</code>가 등록되어
-                        있지만, 실제 네트워크 접근은 엔진 자체에 샌드박스 구현이 없어 항상 "호스트가
-                        제공해야 한다"는 런타임 에러를 던집니다. <code>use DLC:network</code>
-                        선언 자체는 문제없이 되므로, <code>or_else</code>로 감싸 실패를 처리하는
-                        연습을 해볼 수 있습니다.
+                        <code>get(url)</code>과 <code>post(url, body[, content_type])</code>이
+                        실제로 동작하는 HTTP/1.1 클라이언트로 연결되어 <code>{"status", "ok", "body"}</code>
+                        형태의 맵을 반환합니다. 평문 HTTP만 지원하며 <code>https://</code>는 조용히
+                        평문으로 격하되지 않고 바로 에러가 됩니다. 접속 실패·DNS 실패·타임아웃은
+                        <code>NetworkRequestFailed (E4028)</code> 런타임 에러로, <code>or_else</code>로
+                        잡을 수 있습니다. 루프백·사설 대역(클라우드 메타데이터 주소 포함)으로의 요청은
+                        SSRF 방지를 위해 기본적으로 차단됩니다.
                     </p>
                     <pre><code class="language-cuff">use DLC:network
 
-set str body to fetch("https://example.com") or_else do:
-    print("네트워크 DLC는 이 환경에서 사용할 수 없습니다")
-    change body to ""
+set map res to get("http://example.com") or_else do:
+    print("요청 실패 — 네트워크가 막혀 있거나 이 IDE 환경의 제약일 수 있음")
+    change res to {"status": 0, "ok": false, "body": ""}
+end
+if res["ok"] do:
+    print(res["body"])
 end</code></pre>
+                    <div class="callout warn">
+                        <span class="callout-title">이 브라우저 IDE에서는?</span>
+                        위 동작은 네이티브 <code>cuffc</code> 기준입니다. 이 페이지의 IDE는 CuffScript를
+                        WebAssembly로 컴파일해 브라우저 탭 안에서 실행하는데, 브라우저는 스크립트가 임의의
+                        TCP 소켓을 직접 여는 것을 애초에 허용하지 않습니다. 그래서 <code>get</code>/<code>post</code>
+                        호출은 이 IDE에서 대체로 <code>or_else</code>가 잡아야 하는 실패로 끝난다고 보는 게
+                        안전합니다 — 실제 네트워크 요청을 확인하려면 로컬에 빌드한 <code>cuffc</code>로
+                        실행해 보세요.
+                    </div>
                     <div class="callout">
                         <span class="callout-title">라이브러리 이름이 겹치면?</span>
                         <code>use DLC:list</code>와 <code>use DLC:convert</code>처럼 여러 DLC를
@@ -774,7 +879,7 @@ end</code></pre>
                             </tr>
                             <tr>
                                 <td>블록을 열고 <code>end</code>를 빠뜨림</td>
-                                <td><code>if</code>/<code>loop</code>/<code>function</code> 등
+                                <td><code>if</code>/<code>loop</code>/<code>func</code> 등
                                     모든 블록은 여는 만큼 <code>end</code>가 있어야 합니다.</td>
                                 <td>들여쓰기를 기준으로 블록이 하나씩 정확히 닫혔는지 확인합니다.</td>
                             </tr>
@@ -790,7 +895,11 @@ end</code></pre>
                             텍스트를 한 줄씩 소비합니다. 다 소비하면 <code>input()</code>은 빈 문자열을
                             돌려줍니다.
                         </li>
-                        <li><strong>네트워크</strong> — <code>DLC:network</code>는 항상 사용 불가 에러를 냅니다 (위 참고).</li>
+                        <li>
+                            <strong>네트워크</strong> — 네이티브 <code>cuffc</code>에서는 <code>DLC:network</code>가
+                            실제 평문 HTTP 요청을 보냅니다. 이 브라우저 IDE에서는 브라우저 샌드박스가 원시
+                            소켓 접근을 막기 때문에 대체로 실패로 끝납니다 (위 DLC 목록 참고).
+                        </li>
                         <li>
                             <strong>재귀 깊이</strong> — 함수 호출 깊이가 1,000을 넘으면
                             <code>StackOverflow(E4017)</code> 런타임 에러로 안전하게 중단됩니다.
@@ -813,6 +922,8 @@ end</code></pre>
                                 rel="noreferrer">cuffscript — 엔진/CLI 소스코드</a></li>
                         <li><a href="https://www.npmjs.com/package/cuffscript-wasm" target="_blank"
                                 rel="noreferrer">cuffscript-wasm — npm 패키지</a></li>
+                        <li><a href="https://github.com/cuffscript/cuffscript/blob/main/docs/CHANGELOG.md"
+                                target="_blank" rel="noreferrer">CHANGELOG — 버전별 변경사항 (현재 v2.0.0)</a></li>
                     </ul>
                 </section>
             </article>

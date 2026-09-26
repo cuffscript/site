@@ -9,9 +9,9 @@ renderHeader("home");
 scheduleHighlightCuffBlocks();
 
 const iconTargets: Record<string, string> = {
-    "icon-game": icons.game,
-    "icon-feather": icons.feather,
-    "icon-flash": icons.flash,
+    "icon-play": icons.play,
+    "icon-ext-1": icons.external,
+    "icon-ext-2": icons.external,
 };
 
 for (const [id, markup] of Object.entries(iconTargets)) {
