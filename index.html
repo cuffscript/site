@@ -23,6 +23,11 @@
     <meta name="twitter:image" content="https://cuffscript.pages.dev/og-image.png" />
     <meta name="twitter:image:alt" content="CuffScript — A Human-Friendly Programming Language" />
     <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+        href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;700&family=IBM+Plex+Sans+KR:wght@400;500;700&display=swap"
+        rel="stylesheet" />
 </head>
 
 <body>
@@ -34,20 +39,13 @@
                 <nav class="home-toc" aria-label="페이지 안내">
                     <div class="home-toc-group">
                         <h2>이 페이지</h2>
+                        <a href="#news">최신 소식</a>
                         <a href="#why">왜 CuffScript인가</a>
                         <a href="#tour">핵심 문법 한눈에</a>
+                        <a href="#docs">문서 살펴보기</a>
                         <a href="#example">예제 코드</a>
                         <a href="#start">시작하기</a>
-                    </div>
-                    <div class="home-toc-group">
-                        <h2>바로가기</h2>
-                        <a href="/guide/">언어 가이드</a>
-                        <a href="https://github.com/cuffscript/cuffscript" target="_blank" rel="noreferrer">
-                            GitHub <span id="icon-ext-1" class="home-ext-icon"></span>
-                        </a>
-                        <a href="https://www.npmjs.com/package/cuffscript-wasm" target="_blank" rel="noreferrer">
-                            npm (cuffscript-wasm) <span id="icon-ext-2" class="home-ext-icon"></span>
-                        </a>
+                        <a href="#community">커뮤니티 &amp; 기여</a>
                     </div>
                 </nav>
 
@@ -56,7 +54,7 @@
                         <a class="home-logo-link" href="/">
                             <img class="home-logo" src="/favicon.svg" alt="CuffScript 로고" />
                         </a>
-                        <h1>CuffScript <span class="home-version">v2.0.0</span></h1>
+                        <h1>CuffScript</h1>
                         <p class="home-slogan">
                             “As easy as a game, as light as a feather, and as fast as a flash.”
                         </p>
@@ -72,6 +70,19 @@
                             </a>
                             <a class="btn" href="/guide/">언어 가이드 보기</a>
                         </div>
+                    </section>
+
+                    <section class="home-card" id="news">
+                        <h2>최신 소식</h2>
+                        <p class="home-news-intro">
+                            최근 릴리스 3개입니다.
+                        </p>
+                        <ul class="home-news-list" id="news-list"></ul>
+                        <p class="home-news-state" id="news-state">불러오는 중…</p>
+                        <p class="home-news-more">
+                            <a href="https://github.com/cuffscript/cuffscript/blob/main/docs/CHANGELOG.md"
+                                target="_blank" rel="noreferrer">전체 변경 이력 보기 →</a>
+                        </p>
                     </section>
 
                     <section class="home-card" id="why">
@@ -153,6 +164,41 @@
                         </div>
                     </section>
 
+                    <section class="home-card" id="docs">
+                        <h2>문서 살펴보기</h2>
+                        <p>언어 가이드는 아래 7개 주제로 정리되어 있습니다.</p>
+                        <div class="home-docs-grid">
+                            <a class="home-docs-item" href="/guide/#variables">
+                                <h3>기본 문법</h3>
+                                <p>변수·상수 선언, 자료형, 콜론 규칙, 연산자, 인덱싱</p>
+                            </a>
+                            <a class="home-docs-item" href="/guide/#conditionals-loops">
+                                <h3>제어 흐름</h3>
+                                <p>조건문·반복문, 리스트·맵 조작</p>
+                            </a>
+                            <a class="home-docs-item" href="/guide/#functions">
+                                <h3>함수</h3>
+                                <p>함수 정의, 비동기(async/await), 스코프와 global</p>
+                            </a>
+                            <a class="home-docs-item" href="/guide/#or-else">
+                                <h3>에러 처리</h3>
+                                <p><code>or_else</code>와 에러 코드 체계</p>
+                            </a>
+                            <a class="home-docs-item" href="/guide/#pattern-basics">
+                                <h3>패턴 매칭</h3>
+                                <p>match / find / replace / split / count, 퀵 레퍼런스</p>
+                            </a>
+                            <a class="home-docs-item" href="/guide/#modules">
+                                <h3>모듈과 라이브러리</h3>
+                                <p><code>use ... from ...</code>, 내장 DLC 9종</p>
+                            </a>
+                            <a class="home-docs-item" href="/guide/#common-mistakes">
+                                <h3>참고</h3>
+                                <p>흔히 하는 실수, 알려진 제한사항, 관련 링크</p>
+                            </a>
+                        </div>
+                    </section>
+
                     <section class="home-card" id="example">
                         <h2>예제 코드</h2>
                         <p class="home-example-caption">재귀로 피보나치 수열을 구하는 예제입니다.</p>
@@ -194,6 +240,25 @@ make
                             <a href="https://github.com/cuffscript/cuffscript/blob/main/docs/CHANGELOG.md"
                                 target="_blank" rel="noreferrer">CHANGELOG</a>에서 확인할 수 있습니다.
                         </p>
+                    </section>
+
+                    <section class="home-card" id="community">
+                        <h2>커뮤니티 &amp; 기여</h2>
+                        <p>
+                            CuffScript는 Apache-2.0 라이선스로 배포되는 오픈소스 프로젝트입니다. 버그를
+                            발견했거나 새 기능을 제안하고 싶다면 이슈로 먼저 등록해 주세요 — 큰 기능은
+                            논의 없이 올라온 PR이 반려될 수 있습니다.
+                        </p>
+                        <div class="home-cta">
+                            <a class="btn" href="https://github.com/cuffscript/cuffscript/issues" target="_blank"
+                                rel="noreferrer">이슈 등록하기</a>
+                            <a class="btn" href="https://github.com/cuffscript/cuffscript/blob/main/CONTRIBUTING.md"
+                                target="_blank" rel="noreferrer">기여 가이드</a>
+                            <a class="btn" href="https://github.com/cuffscript/cuffscript/blob/main/CODE_OF_CONDUCT.md"
+                                target="_blank" rel="noreferrer">행동 강령</a>
+                            <a class="btn" href="https://github.com/cuffscript/cuffscript/blob/main/LICENSE"
+                                target="_blank" rel="noreferrer">라이선스</a>
+                        </div>
                     </section>
                 </div>
             </div>
