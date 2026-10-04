@@ -8,11 +8,11 @@ use DLC:map
 use DLC:convert
 use DLC:json
 
-print(sqrt(16))
-print(abs(-5))
-print(max(3, 7, 2))
-print(upper("hello"))
-print(trim("  padded  "))
+print(math_sqrt(16))
+print(math_abs(-5))
+print(math_max(3, 7, 2))
+print(str_upper("hello"))
+print(str_trim("  padded  "))
 print(contains("hello world", "world"))
 
 set number roll to random_int(1, 6)
@@ -20,16 +20,16 @@ print(f"주사위: {roll} (1~6 사이여야 함)")
 
 note: DLC:list — 원본을 바꾸지 않고 새 리스트를 반환하는 함수형 스타일
 set list scores to [5, 2, 8, 1, 9, 2]
-print(sort(scores))
-print(reverse(scores))
-print(unique(scores))
+print(list_sort(scores))
+print(list_reverse(scores))
+print(list_unique(scores))
 
-note: join()은 문자열 리스트만 받으므로, 숫자 리스트는 to_str()로 먼저 변환
+note: list_join()은 문자열 리스트만 받으므로, 숫자 리스트는 to_str()로 먼저 변환
 set list score_strs to []
 loop repeat i to 1 ~ 5 do:
     add to_str(scores[i]) to score_strs
 end
-print(join(score_strs, ", "))
+print(list_join(score_strs, ", "))
 
 note: DLC:convert — 명시적 타입 변환
 set number n to to_number("42.5")
@@ -39,13 +39,13 @@ print(to_boolean(""))
 
 note: DLC:map — 맵을 순회하거나 합칠 때 사용
 set map profile to {"name": "Bob", "level": 12}
-print(keys(profile))
-print(values(profile))
-print(has_key(profile, "level"))
+print(map_keys(profile))
+print(map_values(profile))
+print(map_has_key(profile, "level"))
 
 set map defaults to {"volume": 50, "difficulty": "normal"}
 set map overrides to {"difficulty": "hard"}
-print(merge(defaults, overrides))
+print(map_merge(defaults, overrides))
 
 note: DLC:json — CuffScript 값과 JSON 문자열 사이를 오고 감
 set str packed to to_json(profile)

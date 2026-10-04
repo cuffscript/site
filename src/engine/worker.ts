@@ -5,6 +5,8 @@ declare const self: DedicatedWorkerGlobalScope;
 import createCuffScriptModule from "cuffscript-wasm";
 import type { CuffScriptModule } from "cuffscript-wasm";
 import type { CuffFile, RunRequest, WorkerEvent } from "./types";
+import webPolicy from "./webPolicy.json";
+import { findBlockedDlcUsage, formatBlockedError, type BlockedDlcs } from "./dlcPolicy";
 import { interactiveStdinSupported, openStdinChannel, requestLineBlocking, workerCanUseAtomicsWait, type StdinChannel } from "./stdinChannel";
 
 let modulePromise: Promise<CuffScriptModule> | null = null;
@@ -58,6 +60,9 @@ function nextStdinByte(): number | null | undefined {
         return null;
     }
 }
+
+// Libraries this IDE refuses to run (see dlcPolicy.ts / webPolicy.json).
+const BLOCKED_DLCS: BlockedDlcs = webPolicy.blockedDlcs;
 
 function loadModule(): Promise<CuffScriptModule> {
     if (!modulePromise) {
@@ -118,6 +123,14 @@ self.onmessage = async (event: MessageEvent<RunRequest>) => {
     if (!entryFile) {
         post({ id: req.id, type: "fatal", message: `entry file not found: ${req.entryPath}` });
         return;
+    }
+
+    if (req.mode === "run") {
+        const usage = findBlockedDlcUsage(req.files, BLOCKED_DLCS);
+        if (usage) {
+            post({ id: req.id, type: "done", success: false, error: formatBlockedError(usage), elapsedMs: 0 });
+            return;
+        }
     }
 
     try {

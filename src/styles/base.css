@@ -424,6 +424,28 @@ pre {
     line-height: 1.65;
 }
 
+/* A ```output block documents what the snippet above prints. */
+.guide-section pre.code-output {
+    position: relative;
+    margin-top: -4px;
+    padding-top: 22px;
+    background: var(--bg);
+    border-style: dashed;
+    color: var(--text-muted);
+}
+
+.guide-section pre.code-output::before {
+    content: "실행 결과";
+    position: absolute;
+    top: 5px;
+    left: 16px;
+    font-family: var(--font-ui);
+    font-size: 10.5px;
+    font-weight: 700;
+    letter-spacing: 0.04em;
+    color: var(--text-faint);
+}
+
 .guide-section :not(pre)>code {
     background: var(--bg-inset);
     padding: 1px 5px;
@@ -458,6 +480,7 @@ pre {
     border-collapse: collapse;
     font-size: 13px;
     margin: 12px 0;
+    word-break: keep-all;
 }
 
 .ref-table th,
@@ -634,6 +657,11 @@ pre {
 
 .table-scroll {
     overflow-x: auto;
+}
+
+.table-scroll .ref-table td:first-child,
+.table-scroll .ref-table th:first-child {
+    white-space: nowrap;
 }
 
 .home-card pre {

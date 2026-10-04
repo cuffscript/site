@@ -1,5 +1,6 @@
 import { defineConfig } from "vite";
 import { fileURLToPath } from "node:url";
+import cuffContent from "./scripts/vite-plugin-content.mjs";
 
 const root = fileURLToPath(new URL(".", import.meta.url));
 const htmlEntry = (name: string) => fileURLToPath(new URL(name, import.meta.url));
@@ -11,6 +12,8 @@ const CROSS_ORIGIN_ISOLATION_HEADERS = {
 
 export default defineConfig({
     root,
+    // Generates the guide / home page content from content/**/*.md (see README).
+    plugins: [cuffContent()],
     assetsInclude: ["**/*.wasm"],
     worker: {
         format: "es",

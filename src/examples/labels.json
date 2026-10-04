@@ -1,0 +1,12 @@
+{
+    "01_hello": "1. Hello World",
+    "02_variables_and_scope": "2. 변수·상수·스코프",
+    "03_collections": "3. 컬렉션과 인덱싱",
+    "04_pattern_matching": "4. 패턴 매칭 (정규식)",
+    "05_error_recovery": "5. 에러 복구 (or_else)",
+    "06_functions_recursion": "6. 함수와 재귀",
+    "07_async_ordering": "7. 비동기 실행 순서",
+    "08_dlc_libraries": "8. 내장 라이브러리 (DLC)",
+    "09_modules": "9. 모듈 불러오기 (멀티파일)",
+    "10_comprehensive": "10. 종합 데모 (멀티파일)"
+}
