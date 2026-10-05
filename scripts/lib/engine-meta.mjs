@@ -123,7 +123,6 @@ export function extractEngineMeta(engineDir) {
     const pkgPath = path.join(engineDir, "npm", "package.json");
     const engineVersion = fs.existsSync(pkgPath) ? JSON.parse(readText(pkgPath)).version : "unknown";
 
-    // ---- keywords / types / literals (lexer keyword map)
     const kw = src.find(/keywordMap\s*\(\s*\)\s*\{/, "keywordMap()");
     const kwBody = braceBody(kw.text, kw.match.index);
     const entries = [...kwBody.matchAll(/\{\s*"([^"]+)"\s*,\s*TokenType::([A-Z_]+)\s*\}/g)].map((m) => [m[1], m[2]]);
@@ -141,7 +140,6 @@ export function extractEngineMeta(engineDir) {
     const dlc = {};
     for (const name of dlcNames) dlc[name] = { functions: functionNames(src.registerBody(name)) };
 
-    // ---- always-available functions (no `use` needed)
     const core = src.find(/void\s+registerBuiltins\s*\([^)]*\)\s*\{/, "registerBuiltins()");
     const coreBody = braceBody(core.text, core.match.index);
     const coreBuiltins = functionNames(coreBody);
@@ -150,7 +148,6 @@ export function extractEngineMeta(engineDir) {
         if (dlc[lib]) coreBuiltins.push(...dlc[lib].functions);
     }
 
-    // ---- error codes
     const ec = src.find(/enum\s+class\s+ErrorCode\s*\{/, "enum class ErrorCode");
     const ecBody = braceBody(ec.text, ec.match.index);
     const errorCodes = [...ecBody.matchAll(/\b([A-Z]\w*)\s*=\s*(\d{4})\b/g)].map((m) => ({ code: `E${m[2]}`, name: m[1] }));
@@ -167,8 +164,6 @@ export function extractEngineMeta(engineDir) {
         errorCodes,
     };
 }
-
-// ------------------------------------------------------ verify against cuffc
 
 function runCuffc(cuffc, script) {
     const dir = fs.mkdtempSync(path.join(os.tmpdir(), "cuff-probe-"));
@@ -211,8 +206,6 @@ export function verifyAgainstBinary(meta, cuffc) {
     if (errorTag(unknown.stderr) !== "E5004") problems.push("probe control failed: unknown DLC did not raise E5004");
     return problems;
 }
-
-// ------------------------------------------------------------------- diffing
 
 export function describeDiff(oldMeta, newMeta) {
     const lines = [];

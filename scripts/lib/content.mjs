@@ -37,6 +37,7 @@ function readJson(file, fallback) {
         throw new Error(`cannot read ${file}: ${err.message}`, { cause: err });
     }
 }
+
 function listMarkdown(dir) {
     if (!fs.existsSync(dir)) throw new Error(`content directory not found: ${dir}`);
     return fs
@@ -91,8 +92,6 @@ export function buildVars(ctx, extra = {}) {
     };
 }
 
-// ------------------------------------------------------ generated reference
-
 function code(s) {
     return `<code>${escapeText(s)}</code>`;
 }
@@ -130,8 +129,6 @@ function makeInclude(ctx) {
     };
     return (name) => (table[name] ? table[name]() : undefined);
 }
-
-// -------------------------------------------------------------------- guide
 
 export function buildGuide(ctx) {
     const dir = path.join(ctx.root, "content/guide");
@@ -196,8 +193,6 @@ function renderMarkdownInline(text, { file, vars }) {
     return r.html.replace(/^<p>([\s\S]*)<\/p>$/, "$1");
 }
 
-// --------------------------------------------------------------------- home
-
 function docsGridHtml(guide) {
     const items = guide.groups
         .filter((g) => g.showOnHome)
@@ -237,17 +232,17 @@ export function buildHome(ctx, guide) {
         if (type === "hero") {
             cards.push(
                 `<section class="home-card home-card-hero">\n` +
-                    `<a class="home-logo-link" href="/">\n<img class="home-logo" src="/favicon.svg" alt="CuffScript 로고" />\n</a>\n` +
-                    `<h1>${renderInline(title)}</h1>\n` +
-                    (data.slogan ? `<p class="home-slogan">${renderInline(String(data.slogan))}</p>\n` : "") +
-                    `${rendered}\n</section>`,
+                `<a class="home-logo-link" href="/">\n<img class="home-logo" src="/favicon.svg" alt="CuffScript 로고" />\n</a>\n` +
+                `<h1>${renderInline(title)}</h1>\n` +
+                (data.slogan ? `<p class="home-slogan">${renderInline(String(data.slogan))}</p>\n` : "") +
+                `${rendered}\n</section>`,
             );
         } else if (type === "news") {
             cards.push(
                 `<section class="home-card" id="${id}">\n<h2>${renderInline(title)}</h2>\n${rendered}\n` +
-                    `<ul class="home-news-list" id="news-list"></ul>\n` +
-                    `<p class="home-news-state" id="news-state">불러오는 중…</p>\n` +
-                    `<p class="home-news-more">\n<a href="${changelogUrl}" target="_blank" rel="noreferrer">전체 변경 이력 보기 →</a>\n</p>\n</section>`,
+                `<ul class="home-news-list" id="news-list"></ul>\n` +
+                `<p class="home-news-state" id="news-state">불러오는 중…</p>\n` +
+                `<p class="home-news-more">\n<a href="${changelogUrl}" target="_blank" rel="noreferrer">전체 변경 이력 보기 →</a>\n</p>\n</section>`,
             );
         } else if (type === "docs") {
             cards.push(`<section class="home-card" id="${id}">\n<h2>${renderInline(title)}</h2>\n${rendered}\n${docs.html}\n</section>`);
@@ -259,8 +254,6 @@ export function buildHome(ctx, guide) {
     }
     return { tocHtml: `<div class="home-toc-group">\n<h2>이 페이지</h2>\n${toc.join("\n")}\n</div>`, cardsHtml: cards.join("\n") };
 }
-
-// --------------------------------------------------------------- html shells
 
 const PLACEHOLDERS = {
     "<!--@guide:toc-->": (b) => b.guide.tocHtml,

@@ -1,12 +1,9 @@
 // Renders the "최신 소식" card on the home page by fetching the real
-// CHANGELOG.md straight from GitHub at runtime, so this section can never
-// drift out of sync with the engine the way the rest of the site once did.
+// CHANGELOG.md straight from GitHub at runtime.
 //
 // raw.githubusercontent.com serves with permissive CORS (Access-Control-
 // Allow-Origin: *) and sits behind a CDN, so a plain client-side fetch is
 // fine here — no API token, and none of api.github.com's low rate limits.
-//
-// Which repository / branch / how many entries comes from siteConfig.json.
 import siteConfig from "./siteConfig.json";
 import { parseChangelog, type ChangelogEntry } from "./changelog";
 
@@ -16,7 +13,7 @@ const CHANGELOG_BLOB_URL = `https://github.com/${siteConfig.repo}/blob/${siteCon
 
 const PARSE_OPTIONS = { maxEntries: siteConfig.newsCount, summaryMaxLen: 200 };
 const CACHE_KEY = `cuffscript-site:changelog-feed:v1:${siteConfig.newsCount}`;
-const CACHE_TTL_MS = 10 * 60 * 1000; // 10 minutes — avoid refetching on every page view
+const CACHE_TTL_MS = 10 * 60 * 1000; // avoid refetching on every page view
 
 function entriesHtml(entries: ChangelogEntry[]): string {
     return entries

@@ -2,7 +2,6 @@
 // Prints a fully rendered page (shell + generated content) without starting Vite.
 //   node scripts/render-content.mjs guide          -> stdout
 //   node scripts/render-content.mjs home --out dir -> dir/home.html
-// Handy for diffing generated HTML in a PR and for quick sanity checks.
 import fs from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";

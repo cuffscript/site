@@ -11,7 +11,7 @@
 //   - block includes {{ns:name}} and inline variables {{a.b}}
 //   - raw HTML blocks (a line starting with a tag) and a small inline-tag whitelist
 // Code is ALWAYS escaped, so things like "<year:[num]4>" in a snippet can never be
-// mistaken for HTML (a bug the hand-written guide used to have).
+// mistaken for HTML.
 
 const TEXT_ESC = { "&": "&amp;", "<": "&lt;", ">": "&gt;" };
 
@@ -29,8 +29,6 @@ export class ContentError extends Error {
         this.name = "ContentError";
     }
 }
-
-// ---------------------------------------------------------------- front matter
 
 function parseScalar(raw) {
     const v = raw.trim();
@@ -66,8 +64,6 @@ export function parseFrontmatter(source, file) {
     return { data, body: lines.slice(end + 1).join("\n"), bodyLine: end + 2 };
 }
 
-// ------------------------------------------------------------------ variables
-
 /** Replaces {{a.b}} (dot form) outside code, keeping line numbers intact. */
 export function substituteVars(text, vars, file, firstLine = 1) {
     const lines = text.split("\n");
@@ -89,8 +85,6 @@ export function substituteVars(text, vars, file, firstLine = 1) {
             const marker = fm[1] ?? "";
             if (!fence) {
                 fence = marker;
-                // Opt-in: a fence whose info string has the `vars` flag gets variables
-                // substituted inside it (e.g. the clone URL in the install instructions).
                 fenceSubstitutes = /(^|\s)vars(\s|$)/.test(fm[2] ?? "");
             } else if (marker[0] === fence[0] && marker.length >= fence.length && line.trim() === marker) {
                 fence = null;
@@ -143,8 +137,6 @@ function findBacktickClose(s, from, n) {
     }
     return -1;
 }
-
-// -------------------------------------------------------------------- inline
 
 const INLINE_TAGS = new Set(["a", "br", "kbd", "sub", "sup", "span", "abbr", "small", "mark", "em", "strong", "code"]);
 
@@ -328,8 +320,6 @@ export function renderInline(src) {
     }
     return out;
 }
-
-// --------------------------------------------------------------------- blocks
 
 const FENCE_RE = /^ {0,3}(`{3,}|~{3,})\s*(.*)$/;
 const HEADING_RE = /^(#{1,6})\s+(.*?)\s*$/;
@@ -714,8 +704,6 @@ class Renderer {
         return { html: `<${tag}>\n${lis}\n</${tag}>`, next: i };
     }
 }
-
-// --------------------------------------------------------------------- public
 
 /**
  * Renders Markdown to HTML.

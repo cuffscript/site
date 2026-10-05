@@ -549,12 +549,8 @@ pre {
 }
 
 /* ---- home page ----
-   A plain, information-dense layout: a light gray backdrop (reusing
-   --bg-elevated) with stacked white "card" sections, plus a slim sticky
-   sidebar — closer to a language reference site (e.g. lua.org) than a
-   marketing landing page. Overriding --radius/--radius-sm/--shadow here
-   makes every reused component (.btn, .ref-table, <pre>, ...) flatter
-   within just this page, without touching the guide or IDE. */
+   --radius/--radius-sm/--shadow are overridden on .home-main so the reused
+   components (.btn, .ref-table, pre) look flatter here only, not in the guide or IDE. */
 
 .home-main {
     flex: 1;

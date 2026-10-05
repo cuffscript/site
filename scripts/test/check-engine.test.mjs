@@ -22,7 +22,6 @@ function brokenCopy(mutate) {
     return dir;
 }
 function check(dir) {
-    // no --engine: metadata freshness is covered separately below
     const r = spawnSync(process.execPath, [path.join(root, "scripts/check-engine.mjs"), "--root", dir, "--cuffc", cuffc, "--engine", "/nonexistent"], { encoding: "utf8" });
     return { code: r.status, text: `${r.stdout}\n${r.stderr}` };
 }

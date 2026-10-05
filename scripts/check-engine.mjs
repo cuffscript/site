@@ -65,8 +65,6 @@ function runScript(file, cwd) {
     return { code: r.status, stdout: r.stdout ?? "", stderr: r.stderr ?? "", timedOut: r.error?.code === "ETIMEDOUT" };
 }
 
-// ------------------------------------------------------------ 1. code blocks
-
 function listMarkdown(dir, out = []) {
     for (const e of fs.readdirSync(dir, { withFileTypes: true })) {
         const full = path.join(dir, e.name);
@@ -121,8 +119,6 @@ for (const file of mdFiles) {
     });
 }
 
-// --------------------------------------------------------------- 2. examples
-
 const exDir = path.join(root, "src/examples");
 for (const name of fs.readdirSync(exDir).filter((n) => /^\d+_/.test(n)).sort()) {
     const full = path.join(exDir, name);
@@ -138,8 +134,6 @@ for (const name of fs.readdirSync(exDir).filter((n) => /^\d+_/.test(n)).sort()) 
     else if (r.code !== 0) fail(`src/examples/${name}`, `exited ${r.code}: ${firstLine(r.stderr)}`);
     if (verbose) console.log(`  ${r.code === 0 ? "ok " : "ERR"} src/examples/${name}`);
 }
-
-// --------------------------------------------- 3 + 4. names and the web policy
 
 const meta = JSON.parse(fs.readFileSync(path.join(root, "src/generated/engine-meta.json"), "utf8"));
 const known = new Set([...Object.values(meta.dlc).flatMap((d) => d.functions), ...meta.coreBuiltins]);
@@ -168,8 +162,6 @@ for (const name of Object.keys(policy.blockedDlcs ?? {})) {
     if (!(name in meta.dlc)) fail("src/engine/webPolicy.json", `blocks DLC "${name}", which the engine does not have (typo, or the library was removed)`);
 }
 
-// ------------------------------------------------------- 5. metadata freshness
-
 const engineDir = opt("--engine") ?? [path.join(root, "../cuffscript"), path.join(root, "../cuffscript-main"), path.dirname(cuffc)].find((d) => fs.existsSync(path.join(d, "engine")));
 let metaStatus = "not checked (no engine source found; pass --engine <dir>)";
 if (engineDir && fs.existsSync(path.join(engineDir, "engine"))) {
@@ -184,8 +176,6 @@ if (engineDir && fs.existsSync(path.join(engineDir, "engine"))) {
         fail("engine metadata", `could not read the engine source: ${err.message}`);
     }
 }
-
-// -------------------------------------------------------------------- report
 
 console.log(`cuffc: ${cuffc}`);
 console.log(`code blocks run: ${counts.run} (${counts.outputs} with output compared)   skipped (fragment/skip): ${counts.skipped}   examples run: ${counts.examples}   library names checked: ${counts.names}`);
