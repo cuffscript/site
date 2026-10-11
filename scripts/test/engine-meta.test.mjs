@@ -62,11 +62,14 @@ inline void registerBuiltins(std::unordered_map<std::string, NativeFn> &reg)
     registerConvertDLC(reg);
 }
 
-inline void registerDLC(std::unordered_map<std::string, NativeFn> &reg, const std::string &libName)
+inline const std::vector<DLCEntry> &dlcTable()
 {
-    if (libName == "math") registerMathDLC(reg);
-    else if (libName == "convert") registerConvertDLC(reg);
-    else if (libName == "extra") registerExtraDLC(reg);
+    static const std::vector<DLCEntry> table = {
+        {"math", [](NativeTable &reg, const DLCOptions &) { registerMathDLC(reg); }},
+        {"convert", [](NativeTable &reg, const DLCOptions &) { registerConvertDLC(reg); }},
+        {"extra", [](NativeTable &reg, const DLCOptions &) { registerExtraDLC(reg); }},
+    };
+    return table;
 }`;
 
 const CONVERT = `
@@ -97,11 +100,11 @@ test("extracts version, keywords, types, literals, libraries, functions and erro
     assert.deepEqual(meta.keywords, ["set", "change", "if", "else", "loop", "do", "end", "func", "pure", "empty"]);
     assert.deepEqual(meta.types, ["number", "str"]);
     assert.deepEqual(meta.literals, ["true", "false", "empty"]);
-    assert.deepEqual(Object.keys(meta.dlc), ["math", "convert", "extra"]); // order of the use-DLC dispatcher
+    assert.deepEqual(Object.keys(meta.dlc), ["math", "convert", "extra"]); // order of dlcTable()
     assert.deepEqual(meta.errorCodes, [
-        { code: "E1001", name: "UnexpectedCharacter" },
-        { code: "E2001", name: "ExpectedToken" },
-        { code: "E4006", name: "DivisionByZero" },
+        { code: "E1-001", name: "UnexpectedCharacter" },
+        { code: "E2-001", name: "ExpectedToken" },
+        { code: "E4-006", name: "DivisionByZero" },
     ]);
 });
 
@@ -119,11 +122,30 @@ test("uses the register<Name>DLC *definition*, not a forward declaration, wherev
 
 test("a brand-new library is picked up with no code change here", () => {
     const files = baseFiles();
-    files["engine/interpreter/NativeFunctions.h"] = CORE.replace('else if (libName == "extra")', 'else if (libName == "shiny") registerShinyDLC(reg);\n    else if (libName == "extra")');
+    files["engine/interpreter/NativeFunctions.h"] = CORE.replace('{"extra",', '{"shiny", [](NativeTable &reg, const DLCOptions &) { registerShinyDLC(reg); }},\n        {"extra",');
     files["engine/dlc/deep/nested/ShinyDLC.h"] = `inline void registerShinyDLC(std::unordered_map<std::string, NativeFn> &reg) { reg["shiny_one"] = nullptr; }`;
     const meta = extractEngineMeta(fakeEngine(files));
     assert.deepEqual(Object.keys(meta.dlc), ["math", "convert", "shiny", "extra"]);
     assert.deepEqual(meta.dlc.shiny.functions, ["shiny_one"]);
+});
+
+test("a library defined twice (an #ifdef stub and the real one) keeps the real functions", () => {
+    const files = baseFiles();
+    files["engine/dlc/ExtraDLC.h"] = `
+#ifdef DISABLED
+inline void registerExtraDLC(std::unordered_map<std::string, NativeFn> &reg)
+{
+    for (const char *name : {"extra_thing"}) reg[name] = nullptr;
+}
+#else
+inline void registerExtraDLC(std::unordered_map<std::string, NativeFn> &reg)
+{
+    reg["extra_thing"] = nullptr;
+    reg["extra_more"] = nullptr;
+}
+#endif`;
+    const meta = extractEngineMeta(fakeEngine(files));
+    assert.deepEqual(meta.dlc.extra.functions, ["extra_thing", "extra_more"]);
 });
 
 test("always-available functions include the DLC that the core registers itself (convert)", () => {
@@ -147,13 +169,13 @@ test("describeDiff summarises what changed between two metadata snapshots", () =
     b.engineVersion = "10.0.0";
     b.keywords.push("closure");
     b.dlc.math.functions = b.dlc.math.functions.filter((f) => f !== "math_sin").concat("math_cos");
-    b.errorCodes.push({ code: "E4029", name: "PureFunctionImpureCall" });
+    b.errorCodes.push({ code: "E4-029", name: "PureFunctionImpureCall" });
     assert.deepEqual(describeDiff(a, b), [
         "engine version: 9.9.9 -> 10.0.0",
         "keywords: + closure",
         "DLC:math: + math_cos",
         "DLC:math: - math_sin",
-        "error codes: + E4029=PureFunctionImpureCall",
+        "error codes: + E4-029=PureFunctionImpureCall",
     ]);
     assert.deepEqual(describeDiff(a, structuredClone(a)), []);
 });

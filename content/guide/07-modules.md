@@ -12,6 +12,7 @@ summary: `use ... from ...`, 내장 DLC {{engine.dlcCount}}종
 note: lib/greetings.cuff
 set constant str DEFAULT_GREETING to "Hello"
 set returnable func greet(name) do:
+    change DEFAULT_GREETING to global
     return DEFAULT_GREETING + ", " + name + "!"
 end
 ```
@@ -25,7 +26,7 @@ print(DEFAULT_GREETING)
 
 ## 내장 DLC 목록 {#dlc}
 
-공식 내장 라이브러리는 `use DLC:이름` 한 줄로 불러옵니다. 함수는 모두 전역 이름으로 등록되어, `DLC:` 접두사 없이 바로 호출합니다.
+공식 내장 라이브러리는 `use DLC:이름` 한 줄로 불러오고, 여러 개는 쉼표로 이어 `use DLC:math, DLC:string`처럼 한 줄에 쓸 수 있습니다(항목마다 `DLC:`가 필요합니다). 함수는 모두 전역 이름으로 등록되어, `DLC:` 접두사 없이 바로 호출합니다.
 
 ::: callout 함수 이름은 전부 "라이브러리_동사" 형태입니다
 `sqrt` → `math_sqrt`, `upper` → `str_upper`, `get` → `network_get`처럼, 어느 `use` 줄에서 왔는지 이름만 보고 알 수
@@ -165,7 +166,7 @@ JSON의 object/array/string/number/true/false/null은 각각 CuffScript의
 
 `network_get(url)`과 `network_post(url, body[, content_type])`이 실제로 동작하는 HTTP/1.1 클라이언트로 연결되어
 `{"status", "ok", "body"}` 형태의 맵을 반환합니다. 평문 HTTP만 지원하며 `https://`는 조용히 평문으로 격하되지 않고 바로 에러가 됩니다. 접속
-실패·DNS 실패·타임아웃은 `NetworkRequestFailed (E4028)` 런타임 에러로, `or_else`로 잡을 수 있습니다. 루프백·사설 대역(클라우드 메타데이터
+실패·DNS 실패·타임아웃은 `NetworkRequestFailed` ({{error.NetworkRequestFailed}}) 런타임 에러로, `or_else`로 잡을 수 있습니다. 루프백·사설 대역(클라우드 메타데이터
 주소 포함)으로의 요청은 SSRF 방지를 위해 기본적으로 차단됩니다. 신뢰할 수 없는 코드를 실행하는 호스트라면
 `CuffEngine::Options::networkEnabled = false`(또는 `cuffc --no-network`)로 아예 꺼둘 수 있습니다.
 
@@ -191,8 +192,8 @@ end
 
 `file_exist`, `file_size`, `file_read`, `file_readlines`, `file_write`, `file_add`, `file_remove`로
 스크립트 파일 옆의 실제 로컬 파일을 읽고 씁니다. 모든 경로는 `use ... from`이 모듈을 찾을 때 쓰는 것과 **똑같은 샌드박스 루트**(스크립트가 있는 폴더, 또는
-호스트가 설정한 `--root`) 안으로 강제되어, 절대 경로나 `../`로 벗어나려는 시도는 건드리기도 전에 `FilesystemAccessDenied (E5008)`로
-거부됩니다. 루트 밖을 가리키는 심링크도 거부됩니다. 존재하지 않는 파일을 `file_read`/`file_readlines`하면 에러 대신 `empty`가 돌아옵니다.
+호스트가 설정한 `--root`) 안으로 강제되어, 절대 경로나 `../`로 벗어나려는 시도는 건드리기도 전에 `FilesystemAccessDenied` ({{error.FilesystemAccessDenied}})로
+거부됩니다. 루트 밖을 가리키는 심링크도 거부됩니다. 존재하지 않는 파일을 `file_read`/`file_readlines`하면 에러 대신 `empty`가 돌아옵니다. `file_remove`는 일반 파일만 지우며, 폴더는 비어 있어도 지우지 않고 `false`를 돌려줍니다.
 
 ```cuff
 use DLC:filesystem

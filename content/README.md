@@ -58,7 +58,7 @@ home: false                       # 홈 카드에서 빼려면
 
 ````
 ```cuff                 그냥 실행해서 성공(종료코드 0)해야 함
-```cuff error=E4006     이 에러로 실패해야 함 (에러를 설명하는 예제)
+```cuff error=DivisionByZero   이 에러(이름)로 실패해야 함. `E4-006` 같은 번호도 되지만 이름을 권장
 ```cuff fragment        앞뒤 문맥이 필요한 조각이라 실행하지 않음
 ```cuff skip            실행하지 않음 (네트워크를 쓰는 예제 등)
 ````
@@ -85,6 +85,7 @@ print(1 + 2)
 |---|---|
 | `{{engine.dlcCount}}` / `{{engine.dlcNames}}` | 내장 라이브러리 개수 / 이름 목록 (`math/string/...`) |
 | `{{engine.functionCount}}` / `{{engine.errorCodeCount}}` | 내장 함수 / 에러 코드 개수 |
+| `{{error.에러이름}}` | 엔진이 출력하는 에러 코드 (예: `{{error.DivisionByZero}}` → 코드). 글에 번호를 직접 적지 마세요. |
 | `{{examples.count}}` | IDE 예제 개수 |
 | `{{docs.count}}` | 가이드 그룹 개수 (홈 전용) |
 | `{{site.githubUrl}}` `{{site.blobUrl}}` `{{site.cloneUrl}}` `{{site.changelogUrl}}` `{{site.repoName}}` | 저장소 주소들 (`src/siteConfig.json`) |
@@ -101,13 +102,16 @@ print(1 + 2)
 ## 엔진이 새 버전이 되면
 
 ```bash
-node scripts/sync-engine.mjs ../cuffscript    # 1. 엔진 소스에서 키워드·함수·에러코드를 다시 읽어옴
-npm run check:engine -- --cuffc ../cuffscript/cuffc    # 2. 글·예제가 새 엔진에서도 도는지 검사
+npm run update:engine
 ```
 
-- **1번이 자동으로 따라가는 것**: 코드 하이라이트 키워드, 내장 함수 전체 표, 에러 코드 목록, `{{engine.*}}` 숫자.
+엔진 폴더가 `../cuffscript` 또는 `../cuffscript-main`이면 그대로 실행하면 됩니다. 다른 곳이면 `CUFFSCRIPT_ENGINE=경로 npm run update:engine`.
+이 한 줄이 아래 세 가지를 순서대로 합니다: 엔진 빌드(`make`), 엔진 소스에서 키워드·함수·에러코드 다시 읽기, 글·예제 검사.
+
+- **자동으로 따라가는 것**: 코드 하이라이트 키워드, 내장 함수 전체 표, 에러 코드 목록, `{{engine.*}}` 숫자.
   함수가 추가·삭제·이름변경돼도 손댈 게 없습니다. 바뀐 내용이 요약으로 출력됩니다.
-- **2번이 알려주는 것**: 더 이상 안 도는 예제, 존재하지 않는 함수 이름을 언급한 글, 결과가 달라진 출력.
+- **검사가 알려주는 것**: 더 이상 안 도는 예제, 존재하지 않는 함수 이름을 언급한 글, 결과가 달라진 출력.
   이건 **사람이 문장을 고쳐야** 하는 부분이고, 어느 파일 몇 번째 줄인지 알려줍니다.
+- 스코프 규칙처럼 **문장으로 설명한 규칙**이 바뀌면 검사로는 못 잡습니다. 엔진 CHANGELOG를 보고 해당 글을 고치세요. 같은 규칙은 한 곳([스코프와 global])에만 설명하고 나머지는 링크로 가리키면 고칠 곳이 줄어듭니다.
 - 엔진이 없으면 `node scripts/sync-engine.mjs --clone`으로 GitHub에서 받아올 수 있습니다.
 - GitHub Actions(`.github/workflows/engine-compat.yml`)가 매주 이 검사를 대신 돌려 줍니다.

@@ -74,10 +74,10 @@ test("sections: wraps ## headings, collects headings, requires ids", () => {
 });
 
 test("code fences: escaped, language class, tooling flags are not rendered", () => {
-    const r = renderMarkdown('```cuff fragment error=E4006\nif a < b do:\n    print("&")\nend\n```');
+    const r = renderMarkdown('```cuff fragment error=DivisionByZero\nif a < b do:\n    print("&")\nend\n```');
     assert.equal(r.html, '<pre><code class="language-cuff">if a &lt; b do:\n    print("&amp;")\nend</code></pre>');
     assert.deepEqual(r.codeBlocks[0].flags, new Set(["fragment"]));
-    assert.deepEqual(r.codeBlocks[0].attrs, { error: "E4006" });
+    assert.deepEqual(r.codeBlocks[0].attrs, { error: "DivisionByZero" });
     assert.equal(r.codeBlocks[0].line, 2);
 });
 

@@ -17,6 +17,8 @@ set list reward_tier_list to ["Gold", "Silver", "Bronze"]
 
 note: 3단계: 논리 검증 및 텍스트 패턴 매칭을 담당하는 리턴 제어 함수 선언
 set returnable func audit_and_assess_user(email, lvl) do:
+    note: 함수 안에서 전역 값을 쓰려면 먼저 global로 연결
+    change MAX_LEVEL to global
 
     note: 패턴 매칭을 통한 이메일 구조 검증 (is 연산자 사용)
     if email is "[str]+@[str]2~10" do:

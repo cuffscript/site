@@ -8,7 +8,7 @@ import fs from "node:fs";
 import os from "node:os";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
-import { applyContent, buildGuide, buildHome, loadContext } from "../lib/content.mjs";
+import { applyContent, buildGuide, buildHome, buildVars, loadContext } from "../lib/content.mjs";
 import { ContentError } from "../lib/markdown.mjs";
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "../..");
@@ -143,4 +143,13 @@ test("authoring mistakes fail the build with file:line, not silently", () => {
     bad("content/guide/04-functions.md", (s) => s.replace("{#functions}", "{#async}")); // duplicate id
     bad("content/guide/02-syntax.md", (s) => `${s}\n\`\`\`cuff\nnever closed\n`);
     bad("content/home/30-tour.md", (s) => s.replace("id: tour", "type: weird\nid: tour"));
+});
+
+test("{{error.Name}} prints the engine's own tag, and the guide uses it instead of hand-typed codes", () => {
+    const tag = ctx.meta.errorCodes.find((e) => e.name === "DivisionByZero").code;
+    assert.equal(buildVars(ctx)["error.DivisionByZero"], tag);
+    assert.ok(guide.articleHtml.includes(tag), "the guide shows the tag somewhere");
+    for (const f of fs.readdirSync(path.join(root, "content/guide")).filter((n) => n.endsWith(".md"))) {
+        assert.doesNotMatch(read(`content/guide/${f}`), /\bE\d-\d{3}\b|\bE\d{4}\b/, `${f}: type {{error.Name}} instead of a literal code`);
+    }
 });

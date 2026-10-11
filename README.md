@@ -94,6 +94,8 @@ look at the generated HTML without Vite: `npm run content -- guide`.
 
 The site follows the engine instead of being updated by hand:
 
+- `npm run update:engine` does everything below in one go (build the engine,
+  sync, check). Pass a custom engine folder as `CUFFSCRIPT_ENGINE=<dir>`.
 - `npm run sync:engine -- ../cuffscript` reads the engine's **source** and
   regenerates `src/generated/engine-meta.json` (keywords, library functions,
   error codes). If a built `cuffc` is next to it, every function is also

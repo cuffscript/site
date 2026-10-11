@@ -12,7 +12,7 @@
 //
 // How a code block is judged is set in its fence info string:
 //   ```cuff                  must run with exit code 0 and print nothing to stderr
-//   ```cuff error=E4006      must fail with that error code (documenting an error on purpose)
+//   ```cuff error=DivisionByZero   must fail with that error (an error name, or a tag like E4-006)
 //   ```cuff fragment         incomplete snippet (needs surrounding code) - not executed
 //   ```cuff skip             not executed (e.g. it would touch the network)
 //
@@ -27,6 +27,7 @@ import { fileURLToPath } from "node:url";
 import { spawnSync } from "node:child_process";
 import { extractCodeBlocks, parseFrontmatter } from "./lib/markdown.mjs";
 import { extractEngineMeta, describeDiff } from "./lib/engine-meta.mjs";
+import { findErrorTag, errorTagNumber } from "./lib/errorTag.mjs";
 
 const args = process.argv.slice(2);
 // --root lets tests point the checker at a deliberately broken copy of the site.
@@ -38,8 +39,11 @@ const opt = (name) => {
     return i === -1 ? undefined : args[i + 1];
 };
 
+// Where the engine lives: --engine, $CUFFSCRIPT_ENGINE, or a sibling folder (same rule as sync-engine.mjs).
+const engineCandidates = [opt("--engine"), process.env.CUFFSCRIPT_ENGINE, path.join(root, "../cuffscript"), path.join(root, "../cuffscript-main")].filter(Boolean);
+
 function findCuffc() {
-    const candidates = [opt("--cuffc"), process.env.CUFFC, ...["../cuffscript", "../cuffscript-main"].flatMap((d) => [path.join(root, d, "cuffc"), path.join(root, d, "cuffc.exe")])].filter(Boolean);
+    const candidates = [opt("--cuffc"), process.env.CUFFC, ...engineCandidates.flatMap((d) => [path.join(d, "cuffc"), path.join(d, "cuffc.exe")])].filter(Boolean);
     return candidates.map((c) => path.resolve(c)).find((c) => fs.existsSync(c));
 }
 
@@ -57,12 +61,18 @@ const failures = [];
 const counts = { run: 0, skipped: 0, outputs: 0, examples: 0, names: 0 };
 const fail = (where, msg) => failures.push(`${where}\n      ${msg.replace(/\n/g, "\n      ")}`);
 
-const errorTag = (stderr) => /\[(E\d{4})\]/.exec(stderr)?.[1];
+const meta = JSON.parse(fs.readFileSync(path.join(root, "src/generated/engine-meta.json"), "utf8"));
 const firstLine = (s) => (s.trim().split("\n")[0] ?? "").slice(0, 160);
 
 function runScript(file, cwd) {
     const r = spawnSync(cuffc, ["--timeout", "8000", file], { cwd, encoding: "utf8", input: "", timeout: 20000 });
     return { code: r.status, stdout: r.stdout ?? "", stderr: r.stderr ?? "", timedOut: r.error?.code === "ETIMEDOUT" };
+}
+
+/** `error=` in a fence is an error name (DivisionByZero, survives renumbering) or a tag (E4-006). */
+function expectedTag(value) {
+    const byName = meta.errorCodes.find((e) => e.name === value)?.code;
+    return byName ?? (Number.isNaN(errorTagNumber(value)) ? undefined : value);
 }
 
 function listMarkdown(dir, out = []) {
@@ -99,13 +109,15 @@ for (const file of mdFiles) {
             fs.writeFileSync(script, `${block.code}\n`);
             const r = runScript(script, tmp);
             counts.run++;
-            const expected = block.attrs.error;
+            const named = block.attrs.error;
+            const expected = named ? expectedTag(named) : undefined;
             if (r.timedOut) fail(where, "timed out");
+            else if (named && !expected) fail(where, `error=${named} is neither an engine error name nor a tag (use e.g. error=DivisionByZero)`);
             else if (expected) {
-                if (r.code === 0) fail(where, `expected ${expected} but the snippet ran successfully (fence says error=${expected})`);
-                else if (errorTag(r.stderr) !== expected) fail(where, `expected ${expected}, got ${errorTag(r.stderr) ?? "no error code"}: ${firstLine(r.stderr)}`);
+                if (r.code === 0) fail(where, `expected ${expected} but the snippet ran successfully (fence says error=${named})`);
+                else if (findErrorTag(r.stderr) !== expected) fail(where, `expected ${expected}, got ${findErrorTag(r.stderr) ?? "no error code"}: ${firstLine(r.stderr)}`);
             } else if (r.code !== 0) {
-                fail(where, `exited ${r.code}: ${firstLine(r.stderr)}\n(if this snippet is intentionally partial or erroring, mark its fence: \`\`\`cuff fragment  |  \`\`\`cuff error=Exxxx)`);
+                fail(where, `exited ${r.code}: ${firstLine(r.stderr)}\n(if this snippet is intentionally partial or erroring, mark its fence: \`\`\`cuff fragment  |  \`\`\`cuff error=ErrorName)`);
             } else if (documented) {
                 counts.outputs++;
                 if (normalize(r.stdout) !== normalize(documented.code)) {
@@ -135,7 +147,6 @@ for (const name of fs.readdirSync(exDir).filter((n) => /^\d+_/.test(n)).sort()) 
     if (verbose) console.log(`  ${r.code === 0 ? "ok " : "ERR"} src/examples/${name}`);
 }
 
-const meta = JSON.parse(fs.readFileSync(path.join(root, "src/generated/engine-meta.json"), "utf8"));
 const known = new Set([...Object.values(meta.dlc).flatMap((d) => d.functions), ...meta.coreBuiltins]);
 // A prefix counts as "a library prefix" when at least two functions share it (math_, str_, list_ ...).
 const prefixCount = {};
@@ -162,7 +173,7 @@ for (const name of Object.keys(policy.blockedDlcs ?? {})) {
     if (!(name in meta.dlc)) fail("src/engine/webPolicy.json", `blocks DLC "${name}", which the engine does not have (typo, or the library was removed)`);
 }
 
-const engineDir = opt("--engine") ?? [path.join(root, "../cuffscript"), path.join(root, "../cuffscript-main"), path.dirname(cuffc)].find((d) => fs.existsSync(path.join(d, "engine")));
+const engineDir = opt("--engine") ?? [...engineCandidates, path.dirname(cuffc)].find((d) => fs.existsSync(path.join(d, "engine")));
 let metaStatus = "not checked (no engine source found; pass --engine <dir>)";
 if (engineDir && fs.existsSync(path.join(engineDir, "engine"))) {
     try {
@@ -180,6 +191,17 @@ if (engineDir && fs.existsSync(path.join(engineDir, "engine"))) {
 console.log(`cuffc: ${cuffc}`);
 console.log(`code blocks run: ${counts.run} (${counts.outputs} with output compared)   skipped (fragment/skip): ${counts.skipped}   examples run: ${counts.examples}   library names checked: ${counts.names}`);
 console.log(`engine metadata: ${metaStatus}`);
+
+// The IDE runs the npm package, not the engine source: say so when the two differ.
+let wasmVersion;
+try {
+    wasmVersion = JSON.parse(fs.readFileSync(path.join(root, "node_modules/cuffscript-wasm/package.json"), "utf8")).version;
+} catch {
+    /* not installed: nothing to compare */
+}
+if (wasmVersion && wasmVersion !== meta.engineVersion) {
+    console.log(`note: the IDE runs the npm package cuffscript-wasm ${wasmVersion}, but the engine source is ${meta.engineVersion}.\n      Publish the engine to npm, then run: npm update cuffscript-wasm`);
+}
 if (failures.length) {
     console.error(`\n${failures.length} problem(s):\n`);
     for (const f of failures) console.error(`  ✘ ${f}\n`);

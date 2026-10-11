@@ -42,10 +42,10 @@ export function findBlockedDlcUsage(files: readonly CuffFile[], blocked: Blocked
     return null;
 }
 
-/** Formatted like the engine's own errors (E5005 = DLC feature unavailable). */
-export function formatBlockedError(usage: BlockedUsage): string {
+/** Formatted like the engine's own errors; `errorTag` is the engine's tag for "DLC feature unavailable". */
+export function formatBlockedError(usage: BlockedUsage, errorTag: string): string {
     return (
-        `ERROR: [E5005] Module Error: DLC:${usage.dlc} 라이브러리는 이 브라우저 IDE에서 비활성화되어 있습니다.\n` +
+        `ERROR: [${errorTag}] Module Error: DLC:${usage.dlc} 라이브러리는 이 브라우저 IDE에서 비활성화되어 있습니다.\n` +
         `    ${usage.path}:${usage.line}행 — use DLC:${usage.dlc}\n` +
         `    hint: ${usage.reason}`
     );

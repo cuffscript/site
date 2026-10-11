@@ -8,6 +8,7 @@
     "build": "tsc --noEmit && vite build",
     "preview": "vite preview",
     "test": "node --test \"scripts/test/*.test.mjs\"",
+    "update:engine": "node scripts/sync-engine.mjs --build && node scripts/check-engine.mjs",
     "sync:engine": "node scripts/sync-engine.mjs",
     "check:engine": "node scripts/check-engine.mjs",
     "content": "node scripts/render-content.mjs"
@@ -21,7 +22,7 @@
     "@codemirror/view": "^6.34.0",
     "@eslint/js": "^10.0.1",
     "@lezer/highlight": "^1.2.0",
-    "cuffscript-wasm": "^3.3.0",
+    "cuffscript-wasm": "^3.3.1",
     "typescript-eslint": "^8.70.0"
   },
   "devDependencies": {

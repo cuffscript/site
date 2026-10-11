@@ -6,6 +6,7 @@ import createCuffScriptModule from "cuffscript-wasm";
 import type { CuffScriptModule } from "cuffscript-wasm";
 import type { CuffFile, RunRequest, WorkerEvent } from "./types";
 import webPolicy from "./webPolicy.json";
+import engineMeta from "../generated/engine-meta.json";
 import { findBlockedDlcUsage, formatBlockedError, type BlockedDlcs } from "./dlcPolicy";
 import { interactiveStdinSupported, openStdinChannel, requestLineBlocking, workerCanUseAtomicsWait, type StdinChannel } from "./stdinChannel";
 
@@ -63,6 +64,8 @@ function nextStdinByte(): number | null | undefined {
 
 // Libraries this IDE refuses to run (see dlcPolicy.ts / webPolicy.json).
 const BLOCKED_DLCS: BlockedDlcs = webPolicy.blockedDlcs;
+// The tag the engine itself prints for "library unavailable", so the message looks the same.
+const DLC_UNAVAILABLE_TAG = engineMeta.errorCodes.find((e) => e.name === "DLCFeatureUnavailable")?.code ?? "E5";
 
 function loadModule(): Promise<CuffScriptModule> {
     if (!modulePromise) {
@@ -128,7 +131,7 @@ self.onmessage = async (event: MessageEvent<RunRequest>) => {
     if (req.mode === "run") {
         const usage = findBlockedDlcUsage(req.files, BLOCKED_DLCS);
         if (usage) {
-            post({ id: req.id, type: "done", success: false, error: formatBlockedError(usage), elapsedMs: 0 });
+            post({ id: req.id, type: "done", success: false, error: formatBlockedError(usage, DLC_UNAVAILABLE_TAG), elapsedMs: 0 });
             return;
         }
     }

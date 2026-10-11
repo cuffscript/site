@@ -11,6 +11,7 @@
 import fs from "node:fs";
 import path from "node:path";
 import { renderMarkdown, parseFrontmatter, escapeText, renderInline, ContentError } from "./markdown.mjs";
+import { errorTagNumber } from "./errorTag.mjs";
 
 const ERROR_RANGES = [
     [1000, "Lexical"],
@@ -88,6 +89,8 @@ export function buildVars(ctx, extra = {}) {
         "engine.errorCodeCount": ctx.meta.errorCodes.length,
         "examples.count": countExamples(path.join(ctx.root, "src/examples")),
         "site.newsCount": ctx.site.newsCount,
+        // {{error.DivisionByZero}} -> the tag the engine prints for it, e.g. E4-006
+        ...Object.fromEntries(ctx.meta.errorCodes.map((e) => [`error.${e.name}`, e.code])),
         ...extra,
     };
 }
@@ -114,7 +117,7 @@ function dlcReferenceHtml(ctx) {
 
 function errorCodesHtml(ctx) {
     const rows = ctx.meta.errorCodes
-        .map((e) => `<tr><td>${code(e.code)}</td><td>${errorCategory(Number(e.code.slice(1)))}</td><td>${code(e.name)}</td></tr>`)
+        .map((e) => `<tr><td>${code(e.code)}</td><td>${errorCategory(errorTagNumber(e.code))}</td><td>${code(e.name)}</td></tr>`)
         .join("");
     return (
         `<details><summary>에러 코드 전체 목록 (${ctx.meta.errorCodes.length}개)</summary>` +

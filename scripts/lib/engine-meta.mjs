@@ -10,6 +10,7 @@ import fs from "node:fs";
 import path from "node:path";
 import os from "node:os";
 import { spawnSync } from "node:child_process";
+import { formatErrorTag, findErrorTag } from "./errorTag.mjs";
 
 function readText(file) {
     return fs.readFileSync(file, "utf8").replace(/\r\n?/g, "\n");
@@ -94,12 +95,15 @@ class EngineSource {
         throw new Error(`could not find ${what} in ${this.engine} — the engine layout may have changed; update scripts/lib/engine-meta.mjs`);
     }
 
-    /** body of `inline void register<Name>DLC(...) { ... }` (definition, not the forward declaration) */
-    registerBody(name) {
-        const cap = name.charAt(0).toUpperCase() + name.slice(1);
-        const re = new RegExp(`void\\s+register${cap}DLC\\s*\\([^)]*\\)\\s*\\{`);
-        const hit = this.find(re, `register${cap}DLC()`);
-        return braceBody(hit.text, hit.match.index);
+    /**
+     * Bodies of every `void register<Suffix>DLC(...) { ... }` definition (not forward declarations).
+     * There can be several: NetworkDLC.h has one per `#ifdef CUFF_DISABLE_NETWORK` branch.
+     */
+    registerBodies(suffix) {
+        const re = new RegExp(`void\\s+register${suffix}DLC\\s*\\([^)]*\\)\\s*\\{`, "g");
+        const bodies = this.files.flatMap((f) => [...f.text.matchAll(re)].map((m) => braceBody(f.text, m.index)));
+        if (bodies.length === 0) throw new Error(`could not find register${suffix}DLC() in ${this.engine} — the engine layout may have changed; update scripts/lib/engine-meta.mjs`);
+        return bodies;
     }
 }
 
@@ -131,26 +135,27 @@ export function extractEngineMeta(engineDir) {
     const literals = entries.filter(([, t]) => ["TRUE", "FALSE", "EMPTY"].includes(t)).map(([w]) => w);
     const keywords = entries.filter(([, t]) => !t.endsWith("_TYPE") && !["TRUE", "FALSE"].includes(t)).map(([w]) => w);
 
-    // ---- DLC libraries: order and names come from the `use DLC:name` dispatcher
-    const disp = src.find(/void\s+registerDLC\s*\(/, "registerDLC()");
-    const dispBody = braceBody(disp.text, disp.match.index);
-    const dlcNames = unique([...dispBody.matchAll(/libName\s*==\s*"(\w+)"/g)].map((m) => m[1]));
-    if (dlcNames.length === 0) throw new Error("no DLC names found in registerDLC()");
+    // ---- DLC libraries: order and names come from the table behind `use DLC:name`.
+    // A row looks like {"math", [](NativeTable &reg, ...) { registerMathDLC(reg); }}
+    const table = src.find(/dlcTable\s*\(\s*\)\s*\{/, "dlcTable()");
+    const tableBody = braceBody(table.text, table.match.index);
+    const rows = [...tableBody.matchAll(/\{\s*"(\w+)"\s*,[^;]*?\bregister(\w+)DLC\s*\(/g)].map((m) => ({ name: m[1], suffix: m[2] }));
+    if (rows.length === 0) throw new Error("no DLC libraries found in dlcTable()");
 
     const dlc = {};
-    for (const name of dlcNames) dlc[name] = { functions: functionNames(src.registerBody(name)) };
+    for (const { name, suffix } of rows) dlc[name] = { functions: unique(src.registerBodies(suffix).flatMap(functionNames)) };
 
     const core = src.find(/void\s+registerBuiltins\s*\([^)]*\)\s*\{/, "registerBuiltins()");
     const coreBody = braceBody(core.text, core.match.index);
     const coreBuiltins = functionNames(coreBody);
     for (const m of coreBody.matchAll(/\bregister(\w+)DLC\s*\(\s*reg\s*\)/g)) {
-        const lib = m[1].charAt(0).toLowerCase() + m[1].slice(1);
-        if (dlc[lib]) coreBuiltins.push(...dlc[lib].functions);
+        const lib = rows.find((r) => r.suffix === m[1])?.name;
+        if (lib) coreBuiltins.push(...dlc[lib].functions);
     }
 
     const ec = src.find(/enum\s+class\s+ErrorCode\s*\{/, "enum class ErrorCode");
     const ecBody = braceBody(ec.text, ec.match.index);
-    const errorCodes = [...ecBody.matchAll(/\b([A-Z]\w*)\s*=\s*(\d{4})\b/g)].map((m) => ({ code: `E${m[2]}`, name: m[1] }));
+    const errorCodes = [...ecBody.matchAll(/\b([A-Z]\w*)\s*=\s*(\d{4})\b/g)].map((m) => ({ code: formatErrorTag(Number(m[2])), name: m[1] }));
     if (errorCodes.length === 0) throw new Error("no error codes found");
 
     return {
@@ -177,8 +182,6 @@ function runCuffc(cuffc, script) {
     }
 }
 
-const errorTag = (stderr) => /\[(E\d{4})\]/.exec(stderr)?.[1];
-
 /**
  * Calls every function with no arguments. Argument-count validation happens before
  * any side effect, so this is safe even for file_* / network_*; an "undefined
@@ -187,23 +190,27 @@ const errorTag = (stderr) => /\[(E\d{4})\]/.exec(stderr)?.[1];
  */
 export function verifyAgainstBinary(meta, cuffc) {
     const problems = [];
+    const tagOf = (name) => meta.errorCodes.find((e) => e.name === name)?.code;
+    const undefinedFn = tagOf("UndefinedFunction");
+    const unknownDlc = tagOf("UnknownDLC");
+    if (!undefinedFn || !unknownDlc) return [`the engine has no error named ${!undefinedFn ? "UndefinedFunction" : "UnknownDLC"}, which the probes rely on (update verifyAgainstBinary)`];
 
-    const control = errorTag(runCuffc(cuffc, "nonexistent_function_for_probe()\n").stderr);
-    if (control !== "E4002") problems.push(`probe control failed: expected E4002 for an unknown function, got ${control ?? "no error"}`);
+    const control = findErrorTag(runCuffc(cuffc, "nonexistent_function_for_probe()\n").stderr);
+    if (control !== undefinedFn) problems.push(`probe control failed: expected ${undefinedFn} for an unknown function, got ${control ?? "no error"}`);
 
     for (const [name, info] of Object.entries(meta.dlc)) {
         const use = runCuffc(cuffc, `use DLC:${name}\n`);
-        if (use.code !== 0) problems.push(`DLC:${name} is not accepted by ${path.basename(cuffc)} (${errorTag(use.stderr) ?? use.stderr.trim()})`);
+        if (use.code !== 0) problems.push(`DLC:${name} is not accepted by ${path.basename(cuffc)} (${findErrorTag(use.stderr) ?? use.stderr.trim()})`);
         for (const fn of info.functions) {
             const r = runCuffc(cuffc, `use DLC:${name}\n${fn}()\n`);
-            if (errorTag(r.stderr) === "E4002") problems.push(`${name}: ${fn}() is not a function in the binary (undefined function)`);
+            if (findErrorTag(r.stderr) === undefinedFn) problems.push(`${name}: ${fn}() is not a function in the binary (undefined function)`);
         }
     }
     for (const fn of meta.coreBuiltins) {
-        if (errorTag(runCuffc(cuffc, `${fn}()\n`).stderr) === "E4002") problems.push(`core: ${fn}() is not available without a DLC`);
+        if (findErrorTag(runCuffc(cuffc, `${fn}()\n`).stderr) === undefinedFn) problems.push(`core: ${fn}() is not available without a DLC`);
     }
     const unknown = runCuffc(cuffc, "use DLC:definitely_not_a_library\n");
-    if (errorTag(unknown.stderr) !== "E5004") problems.push("probe control failed: unknown DLC did not raise E5004");
+    if (findErrorTag(unknown.stderr) !== unknownDlc) problems.push(`probe control failed: unknown DLC did not raise ${unknownDlc}`);
     return problems;
 }
 

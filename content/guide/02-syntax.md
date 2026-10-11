@@ -28,7 +28,7 @@ set constant str API_URL to "https://cufflang.dev"
 대입하거나 함수 인자로 넘겨도 그 값 자체가 얼어붙어 있으므로 우회할 수 없습니다. 다만 *얕은* 불변성이라, 얼린 리스트 안에 들어있는 일반 리스트나 맵은 여전히 자유롭게 수정할
 수 있습니다. `constant map`은 아직 지원하지 않습니다.
 
-```cuff error=E4003
+```cuff error=ConstantReassignment
 set constant list PRIMES to [2, 3, 5, 7, 11]
 
 add 13 to PRIMES          note: 런타임 에러 — 얼려진 리스트에는 추가 불가
@@ -50,7 +50,7 @@ change PRIMES[1] to 0     note: 이것도 마찬가지로 런타임 에러
 | `map` | 문자열 키 사전 | `{"k": "v"}` |
 | `empty` | 값 없음 | `empty` |
 
-함수 매개변수는 Python처럼 타입 표기 없이 자유롭게 받습니다. f-스트링(`f"..."`)으로 문자열 안에 표현식을 끼워 넣을 수 있고, 중괄호 자체를 출력하려면 `{{`
+함수 매개변수는 타입 표기 없이 받을 수 있고, 원하면 타입을 붙일 수도 있습니다([함수 정의](#functions)). f-스트링(`f"..."`)으로 문자열 안에 표현식을 끼워 넣을 수 있고, 중괄호 자체를 출력하려면 `{{`
 `}}`처럼 두 번 씁니다.
 
 ```cuff
