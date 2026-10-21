@@ -3,6 +3,7 @@ import {
     CUFF_TYPES,
     CUFF_LITERALS,
     CUFF_CONSTANT_NAME,
+    CUFF_OPERATORS,
 } from "./keywords";
 
 const WORD_RE = /^[A-Za-z_][A-Za-z0-9_]*/;
@@ -180,7 +181,7 @@ export function highlightCuff(code: string): string {
             i += opMatch[0].length;
             continue;
         }
-        if (ch !== undefined && /[+\-*/!~<>()[\]{}]/.test(ch)) {
+        if (ch !== undefined && (CUFF_OPERATORS.has(ch) || "()[]{}".includes(ch))) {
             out += wrap("tok-op", ch);
             i += 1;
             continue;

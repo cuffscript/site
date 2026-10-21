@@ -37,7 +37,7 @@ change PRIMES[1] to 0     note: 이것도 마찬가지로 런타임 에러
 
 `add`, `count`, `find`, `split`, `replace`, `match`, `in`, `by`, `not`, `global` 같은 문법 단어도
 변수·함수·매개변수·반복문 변수의 이름으로 쓸 수 있습니다 (`set number count to 3`). `find`처럼 자기만의 구문이 있는 단어는 바로 뒤에 그 구문이 이어질
-때만 구문으로, 아니면 평범한 이름으로 취급됩니다.
+때만 구문으로, 아니면 평범한 이름으로 취급됩니다. 단 `and`와 `or`는 연산자라서 이름으로 쓸 수 없습니다.
 
 ## 자료형 {#types}
 
@@ -81,7 +81,7 @@ endnote
 통과
 ```
 
-## 비교·부정 연산자 {#operators}
+## 연산자 {#operators}
 
 `is`는 일반 동등 비교, `IS`는 **영문 대소문자를 무시하는** 비교입니다. `!`는 불리언 값을 반전시킵니다.
 
@@ -94,6 +94,37 @@ if input_text IS "apple" do: print("대소문자 무시라서 실행됨") end
 set boolean is_active to false
 if !is_active do: print("반전되어 실행됨") end
 ```
+
+조건은 `and`, `or`로 묶습니다(`&&`, `||`도 같은 뜻). 피연산자는 어떤 타입이든 되고 결과는 항상 `boolean`입니다. 왼쪽만으로 결과가 정해지면 오른쪽은 계산하지
+않아서, `x is not 0 and 10 / x > 1`은 0으로 나누지 않습니다.
+
+```cuff
+set number age to 30
+if age >= 18 and age < 65 do: print("경제활동 연령") end
+print(age < 18 or age >= 65)
+
+set number x to 0
+print(x is not 0 and 10 / x > 1)
+```
+
+```output
+경제활동 연령
+false
+false
+```
+
+`%`는 나눗셈의 나머지이고 부호는 나누는 수를 따릅니다(`-7 % 3`은 `2`). `**`는 거듭제곱이며 오른쪽부터 묶입니다(`2 ** 3 ** 2`는 `512`, `-2 ** 2`는 `-4`).
+두 연산자는 `math_mod`, `math_pow`와 같은 계산이고, 0으로 나눈 나머지는 `DivisionByZero` ({{error.DivisionByZero}}) 에러입니다.
+
+```cuff
+print(7 % 3, -7 % 3, 2 ** 10, 2 ** 3 ** 2, -2 ** 2)
+```
+
+```output
+1 2 1024 512 -4
+```
+
+묶이는 힘은 `**`, 단항 `-`, `* / %`, `+ -`, 비교(`is` 포함), `!`, `and`, `or` 순으로 약해집니다. 그래서 `!x is 3`은 `!(x is 3)`입니다.
 
 ## 인덱싱과 슬라이싱 {#indexing}
 

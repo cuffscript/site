@@ -5,6 +5,7 @@ import {
     CUFF_TYPES,
     CUFF_LITERALS,
     CUFF_CONSTANT_NAME,
+    CUFF_OPERATORS,
 } from "./keywords";
 
 interface CuffState {
@@ -105,7 +106,11 @@ function token(stream: StringStream, state: CuffState): string | null {
     }
 
     if (stream.match(/^(>=|<=)/)) return "operator";
-    if (stream.match(/^[+\-*/!~<>]/)) return "operator";
+    const next = stream.peek();
+    if (next !== undefined && CUFF_OPERATORS.has(next)) {
+        stream.next();
+        return "operator";
+    }
     if (stream.match(/^[()[\]{}]/)) return "bracket";
     if (stream.match(/^[,:.]/)) return "punctuation";
 

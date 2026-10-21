@@ -16,8 +16,9 @@ export const CUFF_TYPES = new Set<string>(meta.types);
 
 export const CUFF_LITERALS = new Set<string>(meta.literals);
 
+// Not in the engine's keyword table: a new operator is added here, and both highlighters pick it up.
 export const CUFF_OPERATORS = new Set([
-    "+", "-", "*", "/", ">=", "<=", ">", "<", "!", "~",
+    "+", "-", "*", "/", "%", "&", "|", ">=", "<=", ">", "<", "!", "~",
 ]);
 
 export const CUFF_DLC_NAMES = new Set<string>(Object.keys(meta.dlc));
