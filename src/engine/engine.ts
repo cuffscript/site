@@ -56,7 +56,7 @@ export class CuffEngine {
         this.worker = new Worker(new URL("./worker.ts", import.meta.url), { type: "module" });
         this.worker.onmessage = (event: MessageEvent<WorkerEvent>) => this.handleMessage(event.data);
         this.worker.onerror = (event: ErrorEvent) => {
-            callbacks.onFatal?.(event.message || "워커에서 알 수 없는 오류가 발생했습니다.");
+            callbacks.onFatal?.(event.message || "An unknown error occurred in the worker.");
             this.stop();
         };
 
@@ -107,7 +107,7 @@ export class CuffEngine {
         this.timeoutHandle = window.setTimeout(() => {
             if (this.activeId === id) {
                 this.callbacks?.onFatal?.(
-                    `실행 시간이 ${Math.round(this.timeoutMs / 1000)}초를 넘어 자동으로 중단했습니다. 무한 루프가 없는지 확인해 보세요.`,
+                    `Execution exceeded ${Math.round(this.timeoutMs / 1000)} seconds and was stopped automatically. Check for infinite loops.`,
                 );
                 this.stop();
             }

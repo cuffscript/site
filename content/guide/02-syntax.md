@@ -1,11 +1,11 @@
 ---
-group: 기본 문법
-summary: 변수·상수 선언, 자료형, 콜론 규칙, 연산자, 인덱싱
+group: Basics
+summary: Variables and constants, data types, the colon rule, operators, indexing
 ---
 
-## 변수·상수 선언 {#variables}
+## Variables and constants {#variables}
 
-값을 처음 만들 때는 항상 `set [자료형] [이름] to [값]` 형태를 쓰고, 이후 값을 바꿀 때는 `change [이름] to [값]`을 씁니다.
+The first time you create a value, always write `set [type] [name] to [value]`. To change it afterwards, use `change [name] to [value]`.
 
 ```cuff
 set number age to 25
@@ -16,91 +16,89 @@ change age to 26
 change name to "Bob"
 ```
 
-상수는 `set constant [자료형] [이름] to [값]`으로 선언합니다. 이름은 반드시 전체 대문자(`UPPER_CASE`)여야 하며, 이후 `change`로 값을 바꾸려
-하면 런타임 에러가 발생합니다.
+Constants are declared with `set constant [type] [name] to [value]`. The name must be all upper case (`UPPER_CASE`), and trying to `change` it later is a runtime error.
 
 ```cuff
 set constant number MAX_RETRIES to 3
 set constant str API_URL to "https://cufflang.dev"
 ```
 
-`constant`은 `list`에도 쓸 수 있습니다. 파이썬의 튜플처럼 완전히 읽기 전용인 리스트가 되어, 추가·삭제·인덱스 대입이 전부 런타임 에러입니다 — 다른 변수에
-대입하거나 함수 인자로 넘겨도 그 값 자체가 얼어붙어 있으므로 우회할 수 없습니다. 다만 *얕은* 불변성이라, 얼린 리스트 안에 들어있는 일반 리스트나 맵은 여전히 자유롭게 수정할
-수 있습니다. `constant map`은 아직 지원하지 않습니다.
+`constant` also works with `list` and `map`. A constant list is fully read-only, like a Python tuple: adding, removing and index assignment are all runtime errors, and it stays read-only when you assign it to another variable or pass it to a function. The protection is *shallow*, though: a list or map stored inside a constant list can still be changed. A constant map refuses `change CONFIG["key"] to ...` and `remove "key" from CONFIG`, but the map itself is not frozen: another variable that was given the same map can still change it, and the constant then shows that change. Copy it with `map_merge(CONFIG, {})` when you need an independent map.
 
 ```cuff error=ConstantReassignment
 set constant list PRIMES to [2, 3, 5, 7, 11]
 
-add 13 to PRIMES          note: 런타임 에러 — 얼려진 리스트에는 추가 불가
-change PRIMES[1] to 0     note: 이것도 마찬가지로 런타임 에러
+add 13 to PRIMES          note: runtime error, a frozen list can't be added to
+change PRIMES[1] to 0     note: also a runtime error
 ```
 
-`add`, `count`, `find`, `split`, `replace`, `match`, `in`, `by`, `not`, `global` 같은 문법 단어도
-변수·함수·매개변수·반복문 변수의 이름으로 쓸 수 있습니다 (`set number count to 3`). `find`처럼 자기만의 구문이 있는 단어는 바로 뒤에 그 구문이 이어질
-때만 구문으로, 아니면 평범한 이름으로 취급됩니다. 단 `and`와 `or`는 연산자라서 이름으로 쓸 수 없습니다.
+```cuff error=ConstantReassignment
+set constant map SETTINGS to {"volume": 5}
 
-## 자료형 {#types}
+change SETTINGS["volume"] to 9    note: runtime error, a constant map can't be changed through its name
+```
 
-| 타입 | 설명 | 예시 |
+Words such as `add`, `count`, `find`, `split`, `replace`, `match`, `in`, `by`, `not` and `global` can also be used as the names of variables, functions, parameters and loop variables (`set number count to 3`). A word that has its own syntax, like `find`, is treated as syntax only when that syntax follows it, and as an ordinary name otherwise. The exception is `and` and `or`: they are operators, so they can't be used as names.
+
+## Data types {#types}
+
+| Type | Description | Example |
 |---|---|---|
-| `number` | 정수·실수 | `5`, `3.14` |
-| `str` | 문자열 | `"hello"` |
-| `boolean` | 참/거짓 | `true`, `false` |
-| `list` | 1-Based 순서 목록 | `["a", "b"]` |
-| `map` | 문자열 키 사전 | `{"k": "v"}` |
-| `empty` | 값 없음 | `empty` |
+| `number` | Integer or decimal | `5`, `3.14` |
+| `str` | String | `"hello"` |
+| `boolean` | True or false | `true`, `false` |
+| `list` | 1-based ordered list | `["a", "b"]` |
+| `map` | Dictionary with string keys | `{"k": "v"}` |
+| `empty` | No value | `empty` |
 
-함수 매개변수는 타입 표기 없이 받을 수 있고, 원하면 타입을 붙일 수도 있습니다([함수 정의](#functions)). f-스트링(`f"..."`)으로 문자열 안에 표현식을 끼워 넣을 수 있고, 중괄호 자체를 출력하려면 `{{`
-`}}`처럼 두 번 씁니다.
+Function parameters can be written without a type, and you can add one if you like ([Defining functions](#functions)). An f-string (`f"..."`) embeds expressions in a string, and to print a brace itself you write it twice, as `{{` `}}`.
 
 ```cuff
 set number x to 5
 print(f"x + 1 = {x + 1}")
-print(f"JSON 느낌: {{\"key\": \"value\"}}")
+print(f"JSON-like: {{\"key\": \"value\"}}")
 ```
 
-## 콜론 규칙과 주석 {#colon-comments}
+## The colon rule and comments {#colon-comments}
 
-가독성을 언어 차원에서 강제하기 위해, 문자열을 제외한 모든 콜론(`:`)은 **앞 공백 절대 금지, 뒤 공백 권장** 규칙을 따릅니다. 어기면 렉서가 즉시 문법 에러를 냅니다.
-`do:` 뒤 실행부가 한 줄에서 끝나면, 같은 줄 끝에 `end`까지 붙여 들여쓰기 없는 한 줄 축약형으로 쓸 수 있습니다.
+To enforce readability at the language level, every colon (`:`) outside a string follows one rule: **never a space before it, a space after it is recommended**. Breaking it is a syntax error from the lexer right away. If the body after `do:` fits on one line, you can add `end` at the end of that line and write a one-line form with no indentation.
 
-한 줄 주석은 `note: 내용`, 여러 줄 주석은 `note:` 다음 줄부터 `endnote` 직전까지입니다.
+A single-line comment is `note: text`. A multi-line comment runs from the line after `note:` up to just before `endnote`.
 
 ```cuff
-note: 한 줄 주석
+note: a single-line comment
 set number x to 10
-if x is 10 do: print("통과") end   note: 같은 줄에 덧붙인 주석도 가능
+if x is 10 do: print("Passed") end   note: a trailing comment on the same line works too
 
 note:
-여러 줄 주석 영역입니다.
-들여쓰기와 줄바꿈은 자유롭게 구성할 수 있습니다.
+This is a multi-line comment area.
+Indentation and line breaks are free-form.
 endnote
 ```
 
 ```output
-통과
+Passed
 ```
 
-## 연산자 {#operators}
+## Operators {#operators}
 
-`is`는 일반 동등 비교, `IS`는 **영문 대소문자를 무시하는** 비교입니다. `!`는 불리언 값을 반전시킵니다.
+`is` is a normal equality check, and `IS` is a comparison that **ignores English letter case**. `!` flips a boolean.
 
 ```cuff
 set str input_text to "Apple"
 
-if input_text is "apple" do: print("대소문자가 달라 실행되지 않음") end
-if input_text IS "apple" do: print("대소문자 무시라서 실행됨") end
+if input_text is "apple" do: print("Not run: the case differs") end
+if input_text IS "apple" do: print("Runs because IS ignores case") end
 
 set boolean is_active to false
-if !is_active do: print("반전되어 실행됨") end
+if !is_active do: print("Runs because ! flips the value") end
 ```
 
-조건은 `and`, `or`로 묶습니다(`&&`, `||`도 같은 뜻). 피연산자는 어떤 타입이든 되고 결과는 항상 `boolean`입니다. 왼쪽만으로 결과가 정해지면 오른쪽은 계산하지
-않아서, `x is not 0 and 10 / x > 1`은 0으로 나누지 않습니다.
+Combine conditions with `and` and `or` (`&&` and `||` mean the same). The operands can be of any type, and the result is always a `boolean`. When the left side alone decides the result, the right side is not evaluated, so `x is not 0 and 10 / x > 1` never divides by zero.
 
 ```cuff
 set number age to 30
-if age >= 18 and age < 65 do: print("경제활동 연령") end
+if age >= 18 and age < 65 do: print("Working age") end
 print(age < 18 or age >= 65)
 
 set number x to 0
@@ -108,13 +106,12 @@ print(x is not 0 and 10 / x > 1)
 ```
 
 ```output
-경제활동 연령
+Working age
 false
 false
 ```
 
-`%`는 나눗셈의 나머지이고 부호는 나누는 수를 따릅니다(`-7 % 3`은 `2`). `**`는 거듭제곱이며 오른쪽부터 묶입니다(`2 ** 3 ** 2`는 `512`, `-2 ** 2`는 `-4`).
-두 연산자는 `math_mod`, `math_pow`와 같은 계산이고, 0으로 나눈 나머지는 `DivisionByZero` ({{error.DivisionByZero}}) 에러입니다.
+`%` is the remainder of a division, and its sign follows the divisor (`-7 % 3` is `2`). `**` is exponentiation and groups from the right (`2 ** 3 ** 2` is `512`, and `-2 ** 2` is `-4`). Both are the same calculations as `math_mod` and `math_pow`, and a remainder by zero is a `DivisionByZero` ({{error.DivisionByZero}}) error.
 
 ```cuff
 print(7 % 3, -7 % 3, 2 ** 10, 2 ** 3 ** 2, -2 ** 2)
@@ -124,12 +121,11 @@ print(7 % 3, -7 % 3, 2 ** 10, 2 ** 3 ** 2, -2 ** 2)
 1 2 1024 512 -4
 ```
 
-묶이는 힘은 `**`, 단항 `-`, `* / %`, `+ -`, 비교(`is` 포함), `!`, `and`, `or` 순으로 약해집니다. 그래서 `!x is 3`은 `!(x is 3)`입니다.
+The binding strength weakens in this order: `**`, unary `-`, `* / %`, `+ -`, comparisons (including `is`), `!`, `and`, `or`. That is why `!x is 3` means `!(x is 3)`.
 
-## 인덱싱과 슬라이싱 {#indexing}
+## Indexing and slicing {#indexing}
 
-리스트·문자열의 첫 번째 위치는 **`1`번**입니다. `0`번 인덱스는 존재하지 않으며 접근 시 런타임 에러가 발생합니다. 음수 인덱스는 뒤에서부터 세며 맨 뒤는 `-1`입니다.
-슬라이싱은 `[시작~끝]`처럼 물결(`~`)로 표현하며 양쪽 끝을 모두 포함합니다.
+The first position of a list or string is **`1`**. Index `0` does not exist, and accessing it is a runtime error. Negative indexes count from the end, so the last item is `-1`. Slices use a tilde, as in `[start~end]`, and include both ends.
 
 ```cuff
 set list colors to ["red", "green", "blue", "yellow"]

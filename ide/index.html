@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="ko">
+<html lang="en">
 
 <head>
     <meta charset="UTF-8" />
@@ -28,17 +28,17 @@
         <div id="site-header-root"></div>
 
         <div class="toolbar">
-            <select id="example-select" class="select" title="예제 불러오기">
-                <option value="">예제 불러오기…</option>
+            <select id="example-select" class="select" title="Load an example">
+                <option value="">Load an example…</option>
             </select>
             <div class="toolbar-divider"></div>
             <button id="run-btn" class="btn btn-primary" type="button"></button>
             <button id="stop-btn" class="btn btn-danger" type="button" hidden></button>
-            <button id="ast-btn" class="btn" type="button" title="토큰/AST 덤프 보기"></button>
+            <button id="ast-btn" class="btn" type="button" title="View token / AST dump"></button>
             <span id="run-status" class="run-status"></span>
             <div class="toolbar-spacer"></div>
-            <button id="share-btn" class="btn" type="button" title="공유 링크 복사"></button>
-            <button id="download-btn" class="btn" type="button" title="현재 파일 다운로드"></button>
+            <button id="share-btn" class="btn" type="button" title="Copy share link"></button>
+            <button id="download-btn" class="btn" type="button" title="Download current file"></button>
         </div>
 
         <div id="workspace" class="workspace">
@@ -48,12 +48,12 @@
             </div>
 
             <div id="resize-handle" class="resize-handle" role="separator" aria-orientation="vertical"
-                aria-label="편집기와 출력 패널 크기 조절" tabindex="0"></div>
+                aria-label="Resize editor and output panels" tabindex="0"></div>
 
             <div class="side-pane">
                 <div id="pane-tabs-bar" class="pane-tabs">
-                    <div class="pane-tab active" data-pane="output">출력</div>
-                    <div class="pane-tab" data-pane="stdin">표준 입력 (stdin)</div>
+                    <div class="pane-tab active" data-pane="output">Output</div>
+                    <div class="pane-tab" data-pane="stdin">Standard input (stdin)</div>
                 </div>
                 <div id="pane-output" class="pane-body active">
                     <div id="console" class="console"></div>
@@ -61,13 +61,12 @@
                 <div id="pane-stdin" class="pane-body">
                     <div class="stdin-panel">
                         <p class="stdin-hint">
-                            <code>input()</code>이 호출되면, 이 환경에서 실시간 입력이 지원될 경우
-                            실행 결과 화면에 바로 입력할 수 있는 칸이 나타납니다. 지원되지 않는
-                            경우에는 여기 적어둔 내용을 위에서부터 한 줄씩 읽어갑니다. 다 쓰면 빈
-                            문자열이 반환됩니다.
+                            <code>input()</code> reads from here when live input isn't available. If this environment supports live
+                            input, a field appears in the output panel instead where you can type. Otherwise the lines written
+                            here are read one at a time from the top, and once they run out an empty string is returned.
                         </p>
                         <p id="stdin-diagnostic" class="stdin-hint"></p>
-                        <textarea id="stdin-input" class="stdin-textarea" placeholder="예: 15&#10;3.5"
+                        <textarea id="stdin-input" class="stdin-textarea" placeholder="e.g. 15&#10;3.5"
                             spellcheck="false"></textarea>
                     </div>
                 </div>

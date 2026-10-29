@@ -1,51 +1,47 @@
 ---
-group: 에러 처리
-summary: `or_else`와 에러 코드 체계
+group: Error handling
+summary: "`or_else` and the error code system"
 ---
 
 ## or_else {#or-else}
 
-try-catch 대신, 실패할 수 있는 구문 뒤에 `or_else do: ... end`를 붙여 에러를 처리합니다. 블록 안에서는 `change`로 기존 변수를 채우거나 새
-변수를 선언할 수 있습니다.
+Instead of try-catch, you attach `or_else do: ... end` after a statement that might fail. Inside the block you can fill an existing variable with `change` or declare a new one.
 
 ```cuff
 set number a to 10
 set number b to 0
 set number result to a / b or_else do:
-    print("0으로 나누기 실패, 기본값으로 대체")
+    print("Division by zero failed, using the default value")
     change result to -1
 end
 print(f"result = {result}")
 ```
 
-## 에러 코드 체계 {#error-codes}
+## The error code system {#error-codes}
 
-모든 에러는 고유한 코드(예: {{error.DivisionByZero}})와 하나의 범주를 가집니다. `E`와 `-` 사이의 숫자만 봐도 어느 단계에서 발생했는지 알 수 있습니다.
+Every error has a unique code (for example {{error.DivisionByZero}}) and belongs to one category. The number between `E` and `-` tells you which stage it came from.
 
-| 코드 | 범주 | or_else로 복구 가능? |
+| Code | Category | Recoverable with or_else? |
 |---|---|---|
-| `E1-xxx` | Lexical (토크나이저) | 불가능 |
-| `E2-xxx` | Syntax (파서) | 불가능 |
-| `E3-0xx` | Regex Syntax (패턴 컴파일) | 불가능 |
-| `E3-1xx` | Regex Runtime (스텝/시간 제한 등) | 가능 |
-| `E4-xxx` | Runtime (인터프리터) | 가능 |
-| `E5-xxx` | Module (use/from) | 가능 |
-| `E6-xxx` | Resource (실행 예산 초과) | 불가능 |
-| `E9-xxx` | Internal (엔진 내부 버그) | 불가능 |
+| `E1-xxx` | Lexical (tokenizer) | No |
+| `E2-xxx` | Syntax (parser) | No |
+| `E3-0xx` | Regex Syntax (pattern compile) | No |
+| `E3-1xx` | Regex Runtime (step and time limits, etc.) | Yes |
+| `E4-xxx` | Runtime (interpreter) | Yes |
+| `E5-xxx` | Module (use/from) | Yes |
+| `E6-xxx` | Resource (execution budget exceeded) | No |
+| `E9-xxx` | Internal (engine bug) | No |
 
-프로그램 자체가 잘못된 경우(문법 오류 등)는 이미 실행 중인 코드 안에서 나타날 수 없으므로 `or_else`가 잡지 않으며, "정상적인 코드가 나쁜 상황(0으로 나누기, 없는
-파일 등)을 만난 경우"만 `or_else`로 복구할 수 있습니다. `E6`은 CLI의 `--max-steps`/`--timeout` 실행 예산을 넘었을 때만 발생하며 (기본은
-꺼져 있음), "프로그램이 통제를 벗어났다"는 신호이기 때문에 `or_else`가 일부러 잡지 않도록 설계되어 있습니다.
+If the program itself is wrong (a syntax error, say), the error can't appear inside code that is already running, so `or_else` does not catch it. Only "correct code running into a bad situation" (division by zero, a missing file, and so on) can be recovered with `or_else`. `E6` happens only when the CLI's `--max-steps` or `--timeout` execution budget is exceeded (both are off by default). It is a sign that the program has gone out of control, so `or_else` is deliberately designed not to catch it.
 
 {{engine:error-codes}}
 
-실제 에러는 아래 코드를 실행하면 이런 형태로 출력됩니다. 에러가 난 소스 줄이 함께 나오고, `^`가 정확한 열을 가리킵니다 (앞에 한글이나 이모지 같은 여러 바이트 문자가
-있어도 열이 어긋나지 않습니다).
+A real error looks like this when you run the code below. The source line where the error happened is shown with it, and the `^` points at the exact column (columns count characters, and the `^` stays lined up even after wide or multi-byte characters such as CJK text or emoji).
 
 ```cuff error=DivisionByZero
 set number a to 10
 set number b to 0
-print(a / b)   note: or_else가 없으므로 여기서 프로그램이 멈추고 아래 메시지가 출력됨
+print(a / b)   note: there is no or_else, so the program stops here and prints the message below
 ```
 
 ```text vars
@@ -54,5 +50,4 @@ ERROR: [{{error.DivisionByZero}}] Runtime Error at line 3, column 9: division by
             ^
 ```
 
-`or_else`로 감싸지 않은 런타임 에러는 프로그램을 그 자리에서 멈춥니다. 이 IDE에서는 출력 패널에 위와 같은 메시지가 빨간 글씨로 표시되고, 실행 상태가 "오류"로
-바뀝니다.
+A runtime error that isn't wrapped in `or_else` stops the program on the spot. In this IDE the output panel shows a message like the one above in red, and the run status changes to Error.

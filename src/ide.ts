@@ -33,11 +33,11 @@ const editorHost = el<HTMLElement>("editor-host");
 const consoleEl = el<HTMLElement>("console");
 const stdinInput = el<HTMLTextAreaElement>("stdin-input");
 
-runBtn.innerHTML = `${icons.play}<span>실행</span>`;
-stopBtn.innerHTML = `${icons.stop}<span>중단</span>`;
-astBtn.innerHTML = `${icons.tree}<span>AST 보기</span>`;
-shareBtn.innerHTML = `${icons.link}<span>공유 링크</span>`;
-downloadBtn.innerHTML = `${icons.download}<span>다운로드</span>`;
+runBtn.innerHTML = `${icons.play}<span>Run</span>`;
+stopBtn.innerHTML = `${icons.stop}<span>Stop</span>`;
+astBtn.innerHTML = `${icons.tree}<span>View AST</span>`;
+shareBtn.innerHTML = `${icons.link}<span>Share link</span>`;
+downloadBtn.innerHTML = `${icons.download}<span>Download</span>`;
 
 for (const example of EXAMPLES) {
     const option = document.createElement("option");
@@ -54,8 +54,8 @@ const engine = new CuffEngine();
 const stdinDiagnostic = el<HTMLElement>("stdin-diagnostic");
 function renderStdinDiagnostic(available: boolean): void {
     stdinDiagnostic.textContent = available
-        ? "\u2713 이 브라우저에서 실시간 입력을 지원합니다."
-        : "\u2717 이 브라우저/배포 환경에서는 실시간 입력을 지원하지 않아, 이 탭의 내용을 사용합니다.";
+        ? "\u2713 This browser supports live input."
+        : "\u2717 Live input isn't supported in this browser/deployment, so the contents of this tab are used.";
 }
 renderStdinDiagnostic(engine.isInteractive);
 
@@ -77,13 +77,13 @@ const tabBar = new TabBar(tabBarEl, {
         scheduleSave();
     },
     onAdd: () => {
-        const input = window.prompt("새 파일 경로를 입력하세요 (예: lib/util.cuff)", "lib/util.cuff");
+        const input = window.prompt("Enter a new file path (e.g. lib/util.cuff)", "lib/util.cuff");
         if (!input) return;
         let path = input.trim();
         if (!path) return;
         if (!path.endsWith(".cuff")) path += ".cuff";
         if (editor.hasFile(path)) {
-            window.alert("이미 존재하는 파일 경로입니다.");
+            window.alert("That file path already exists.");
             return;
         }
         editor.addFile(path, "");
@@ -164,7 +164,7 @@ paneTabs.forEach((tab) => {
 // Real-time interactive input (see engine.ts / stdinChannel.ts) answers
 // input() inline in the console as the program runs — but since it depends
 // on cross-origin isolation actually reaching this worker (not just this
-// page), the "미리 쓰는" stdin tab stays available at all times as a
+// page), the pre-filled stdin tab stays available at all times as a
 // guaranteed fallback rather than being hidden ahead of a run.
 
 function setRunningUI(running: boolean): void {
@@ -183,7 +183,7 @@ function runProgram(mode: RunMode): void {
 
     consoleView.clear();
     setRunningUI(true);
-    runStatus.textContent = "실행 중…";
+    runStatus.textContent = "Running…";
 
     engine.run(
         { entryPath: editor.currentPath, files, stdin: project.stdin, mode },
@@ -191,13 +191,13 @@ function runProgram(mode: RunMode): void {
             onStdout: (text) => consoleView.stdout(text),
             onStderr: (text) => consoleView.stderr(text),
             onStdinRequest: () => {
-                runStatus.textContent = "입력 대기 중…";
+                runStatus.textContent = "Waiting for input…";
                 consoleView.requestInput((value) => engine.provideStdin(value));
             },
             onStdinUnavailable: () => {
                 renderStdinDiagnostic(false);
                 consoleView.status(
-                    "이 환경에서는 실시간 입력을 쓸 수 없어, 표준 입력 탭에 미리 적어둔 내용으로 대신했습니다.",
+                    "Live input isn't available here, so the text in the Standard input tab was used instead.",
                 );
             },
             onDone: ({ success, error, elapsedMs }) => {
@@ -205,18 +205,18 @@ function runProgram(mode: RunMode): void {
                 consoleView.cancelInput();
                 const time = elapsedMs.toFixed(1);
                 if (success) {
-                    runStatus.textContent = `완료 (${time}ms)`;
-                    consoleView.status(`실행 완료 (${time}ms)`);
+                    runStatus.textContent = `Done (${time}ms)`;
+                    consoleView.status(`Run finished (${time}ms)`);
                 } else {
-                    runStatus.textContent = `오류 (${time}ms)`;
+                    runStatus.textContent = `Error (${time}ms)`;
                     consoleView.stderr(error);
-                    consoleView.status(`실행 실패 (${time}ms)`);
+                    consoleView.status(`Run failed (${time}ms)`);
                 }
             },
             onFatal: (message) => {
                 setRunningUI(false);
                 consoleView.cancelInput();
-                runStatus.textContent = "중단됨";
+                runStatus.textContent = "Stopped";
                 consoleView.status(message);
             },
         },
@@ -229,8 +229,8 @@ stopBtn.addEventListener("click", () => {
     engine.stop();
     consoleView.cancelInput();
     setRunningUI(false);
-    runStatus.textContent = "중단됨";
-    consoleView.status("사용자가 실행을 중단했습니다.");
+    runStatus.textContent = "Stopped";
+    consoleView.status("Run stopped by the user.");
 });
 
 window.addEventListener("keydown", (event) => {
@@ -257,12 +257,12 @@ shareBtn.addEventListener("click", async () => {
     const url = buildShareUrl({ files, activeFile: editor.currentPath, stdin: project.stdin });
     try {
         await navigator.clipboard.writeText(url);
-        shareBtn.innerHTML = `${icons.link}<span>복사됨!</span>`;
+        shareBtn.innerHTML = `${icons.link}<span>Copied!</span>`;
     } catch {
-        window.prompt("아래 링크를 복사하세요:", url);
+        window.prompt("Copy this link:", url);
     } finally {
         window.setTimeout(() => {
-            shareBtn.innerHTML = `${icons.link}<span>공유 링크</span>`;
+            shareBtn.innerHTML = `${icons.link}<span>Share link</span>`;
         }, 1500);
     }
 });

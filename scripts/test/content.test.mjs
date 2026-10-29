@@ -57,7 +57,7 @@ test("no template syntax leaks into the output ({{...}} or @-placeholders)", () 
 });
 
 test("generated DLC reference lists every library and every function once per library that has it", () => {
-    const ref = guide.articleHtml.slice(guide.articleHtml.indexOf("<h3>전체 함수 목록</h3>"));
+    const ref = guide.articleHtml.slice(guide.articleHtml.indexOf("<h3>Full function list</h3>"));
     const table = ref.slice(0, ref.indexOf("</table>"));
     // length / contains / index_of are registered by several libraries on purpose,
     // so a function must appear once for EACH library that lists it.
@@ -77,7 +77,7 @@ test("generated error-code table lists every engine error code", () => {
 
 test("blocked libraries are flagged in the generated reference (so the guide never promises them)", () => {
     for (const name of Object.keys(ctx.policy.blockedDlcs)) {
-        assert.match(guide.articleHtml, new RegExp(`<code>DLC:${name}</code><br /><em>이 브라우저 IDE에서는 차단</em>`));
+        assert.match(guide.articleHtml, new RegExp(`<code>DLC:${name}</code><br /><em>Blocked in this browser IDE</em>`));
     }
 });
 
@@ -104,10 +104,10 @@ test("home: the docs grid is derived from the guide and every link lands on a re
 
 test("home: counts shown in the text come from the real data, not from memory", () => {
     const tour = home.cardsHtml;
-    assert.ok(tour.includes(`${Object.keys(ctx.meta.dlc).length}종`), "DLC count");
+    assert.ok(tour.includes(`${Object.keys(ctx.meta.dlc).length} libraries`), "DLC count");
     assert.ok(tour.includes(Object.keys(ctx.meta.dlc).join("/")), "DLC list");
     const exampleCount = fs.readdirSync(path.join(root, "src/examples")).filter((n) => /^\d+_/.test(n)).length;
-    assert.ok(tour.includes(`예제 ${exampleCount}개`), "example count");
+    assert.ok(tour.includes(`${exampleCount} ready-made examples`), "example count");
 });
 
 test("page shells still contain every placeholder, and applying content removes them all", () => {

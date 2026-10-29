@@ -1,5 +1,5 @@
 // Tests src/changelog.ts (the real TypeScript, run by Node) - the parser behind the
-// home page's live "최신 소식" card.
+// home page's live "Latest news" card.
 import { test } from "node:test";
 import assert from "node:assert/strict";
 import fs from "node:fs";

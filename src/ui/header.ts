@@ -24,7 +24,7 @@ export function renderHeader(active: NavKey): void {
       <a class="brand" href="/">${BRAND_MARK}<span>CuffScript</span></a>
       <nav class="site-nav">
         <a href="/ide/"${navAttr("ide", active)}>IDE</a>
-        <a href="/guide/"${navAttr("guide", active)}>가이드</a>
+        <a href="/guide/"${navAttr("guide", active)}>Guide</a>
       </nav>
       <div class="header-spacer"></div>
       <div class="header-actions">
@@ -34,9 +34,9 @@ export function renderHeader(active: NavKey): void {
           href="https://github.com/cuffscript/cuffscript"
           target="_blank"
           rel="noreferrer"
-          title="GitHub 저장소"
+          title="GitHub repository"
         >${icons.external}</a>
-        <button id="theme-toggle" class="icon-btn" type="button" title="테마 전환"></button>
+        <button id="theme-toggle" class="icon-btn" type="button" title="Toggle theme"></button>
       </div>
     </header>
   `;

@@ -50,7 +50,7 @@ test("catches a documented output that no longer matches what the engine prints"
 });
 
 test("catches prose that mentions a library function the engine does not have", { skip }, () => {
-    const dir = brokenCopy((d) => patch(d, "content/guide/04-functions.md", (s) => s.replace("## 함수 정의 {#functions}\n", "## 함수 정의 {#functions}\n\n`math_squareroot` 를 쓰세요.\n")));
+    const dir = brokenCopy((d) => patch(d, "content/guide/04-functions.md", (s) => s.replace("## Defining functions {#functions}\n", "## Defining functions {#functions}\n\nUse `math_squareroot` here.\n")));
     const r = check(dir);
     assert.equal(r.code, 1);
     assert.match(r.text, /"math_squareroot" looks like a library function/);

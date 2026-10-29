@@ -435,7 +435,7 @@ pre {
 }
 
 .guide-section pre.code-output::before {
-    content: "실행 결과";
+    content: "Output";
     position: absolute;
     top: 5px;
     left: 16px;

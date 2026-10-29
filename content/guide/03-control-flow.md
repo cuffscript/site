@@ -1,44 +1,54 @@
 ---
-group: 제어 흐름
-summary: 조건문·반복문, 리스트·맵 조작
+group: Control flow
+summary: Conditionals and loops, working with lists and maps
 ---
 
-## 조건문과 반복문 {#conditionals-loops}
+## Conditionals and loops {#conditionals-loops}
 
-조건 분기는 `if ... do: ... else if ... do: ... else do: ... end` 형태입니다. 반복문은 두 가지입니다: 범위를 도는
-`loop repeat`, 조건이 참인 동안 도는 `loop while`. `stop`은 가장 가까운 반복문 하나만 즉시 종료합니다. 블록형 구문은 들여쓰기가 필수이며, 여는 만큼
-`end`도 정확히 있어야 합니다.
+Branching looks like `if ... do: ... else if ... do: ... else do: ... end`. There are two loops: `loop repeat`, which runs over a range, and `loop while`, which runs while a condition is true. `stop` ends only the nearest loop immediately. Block statements must be indented, and every opener needs exactly one `end`.
 
 ```cuff
 set number score to 85
 
 if score >= 90 do:
-    print("우수")
+    print("Excellent")
 else if score >= 80 do:
-    print("장려")
+    print("Good")
 else do:
-    print("노력")
+    print("Keep trying")
 end
 
 loop repeat i to 1 ~ 10 do:
     if i is 4 do:
         stop
     end
-    print(f"회전 라운드: {i}")
+    print(f"Round: {i}")
 end
 ```
 
 ```output
-장려
-회전 라운드: 1
-회전 라운드: 2
-회전 라운드: 3
+Good
+Round: 1
+Round: 2
+Round: 3
 ```
 
-## 리스트·맵 조작 {#collections}
+`loop repeat` always runs over a number range, and both ends are included. If the start is larger than the end it counts down, and a range is never empty: `1 ~ 0` runs twice, for `1` and then `0`. Take care when the end comes from the length of a list that might be empty, since `1 ~ length(items)` then still runs twice.
 
-메서드 대신 자연어 구문으로 컬렉션을 다룹니다: 리스트 끝에 추가는 `add ... to ...`, 인덱스/키 값 변경은 `change ... to ...`, 제거는
-`remove ... from ...`. 맵에 없는 키에 값을 대입하면 새 키가 생깁니다.
+```cuff
+loop repeat i to 1 ~ 0 do:
+    print(i)
+end
+```
+
+```output
+1
+0
+```
+
+## Working with lists and maps {#collections}
+
+Collections are handled with natural-language statements instead of methods: `add ... to ...` appends to a list, `change ... to ...` changes an index or key, and `remove ... from ...` removes. Assigning to a key that a map doesn't have creates a new key.
 
 ```cuff
 set list inventory to ["sword", "shield"]

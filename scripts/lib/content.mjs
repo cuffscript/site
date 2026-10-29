@@ -16,8 +16,8 @@ import { errorTagNumber } from "./errorTag.mjs";
 const ERROR_RANGES = [
     [1000, "Lexical"],
     [2000, "Syntax"],
-    [3000, "Regex (문법)"],
-    [3100, "Regex (실행)"],
+    [3000, "Regex (syntax)"],
+    [3100, "Regex (runtime)"],
     [4000, "Runtime"],
     [5000, "Module"],
     [6000, "Resource"],
@@ -25,7 +25,7 @@ const ERROR_RANGES = [
 ];
 
 function errorCategory(codeNumber) {
-    let label = "기타";
+    let label = "Other";
     for (const [start, name] of ERROR_RANGES) if (codeNumber >= start) label = name;
     return label;
 }
@@ -104,14 +104,14 @@ function dlcReferenceHtml(ctx) {
     const rows = dlcNames(ctx.meta)
         .map((name) => {
             const fns = ctx.meta.dlc[name]?.functions ?? [];
-            const note = Object.prototype.hasOwnProperty.call(blocked, name) ? "<br /><em>이 브라우저 IDE에서는 차단</em>" : "";
+            const note = Object.prototype.hasOwnProperty.call(blocked, name) ? "<br /><em>Blocked in this browser IDE</em>" : "";
             return `<tr><td>${code(`DLC:${name}`)}${note}</td><td>${fns.map(code).join(", ")}</td></tr>`;
         })
         .join("");
     const always = ctx.meta.coreBuiltins.map(code).join(", ");
     return (
-        `<table class="ref-table"><thead><tr><th>라이브러리</th><th>함수</th></tr></thead><tbody>${rows}</tbody></table>\n` +
-        `<p>항상 쓸 수 있는 함수(<code>use</code> 불필요): ${always}.</p>`
+        `<table class="ref-table"><thead><tr><th>Library</th><th>Functions</th></tr></thead><tbody>${rows}</tbody></table>\n` +
+        `<p>Always available (no <code>use</code> needed): ${always}.</p>`
     );
 }
 
@@ -120,8 +120,8 @@ function errorCodesHtml(ctx) {
         .map((e) => `<tr><td>${code(e.code)}</td><td>${errorCategory(errorTagNumber(e.code))}</td><td>${code(e.name)}</td></tr>`)
         .join("");
     return (
-        `<details><summary>에러 코드 전체 목록 (${ctx.meta.errorCodes.length}개)</summary>` +
-        `<table class="ref-table"><thead><tr><th>코드</th><th>범주</th><th>이름</th></tr></thead><tbody>${rows}</tbody></table></details>`
+        `<details><summary>Full list of error codes (${ctx.meta.errorCodes.length})</summary>` +
+        `<table class="ref-table"><thead><tr><th>Code</th><th>Category</th><th>Name</th></tr></thead><tbody>${rows}</tbody></table></details>`
     );
 }
 
@@ -149,7 +149,7 @@ export function buildGuide(ctx) {
         if (file.startsWith("_")) {
             if (file === "_lead.md") {
                 const r = renderMarkdown(body, { file: full, firstLine: bodyLine, vars, include });
-                lead = `<h1>${renderInline(String(data.title ?? "가이드"))}</h1>\n${r.html.replace(/^<p>/, '<p class="guide-lead">')}`;
+                lead = `<h1>${renderInline(String(data.title ?? "Guide"))}</h1>\n${r.html.replace(/^<p>/, '<p class="guide-lead">')}`;
             }
             continue;
         }
@@ -235,7 +235,7 @@ export function buildHome(ctx, guide) {
         if (type === "hero") {
             cards.push(
                 `<section class="home-card home-card-hero">\n` +
-                `<a class="home-logo-link" href="/">\n<img class="home-logo" src="/favicon.svg" alt="CuffScript 로고" />\n</a>\n` +
+                `<a class="home-logo-link" href="/">\n<img class="home-logo" src="/favicon.svg" alt="CuffScript logo" />\n</a>\n` +
                 `<h1>${renderInline(title)}</h1>\n` +
                 (data.slogan ? `<p class="home-slogan">${renderInline(String(data.slogan))}</p>\n` : "") +
                 `${rendered}\n</section>`,
@@ -244,8 +244,8 @@ export function buildHome(ctx, guide) {
             cards.push(
                 `<section class="home-card" id="${id}">\n<h2>${renderInline(title)}</h2>\n${rendered}\n` +
                 `<ul class="home-news-list" id="news-list"></ul>\n` +
-                `<p class="home-news-state" id="news-state">불러오는 중…</p>\n` +
-                `<p class="home-news-more">\n<a href="${changelogUrl}" target="_blank" rel="noreferrer">전체 변경 이력 보기 →</a>\n</p>\n</section>`,
+                `<p class="home-news-state" id="news-state">Loading…</p>\n` +
+                `<p class="home-news-more">\n<a href="${changelogUrl}" target="_blank" rel="noreferrer">View the full change history →</a>\n</p>\n</section>`,
             );
         } else if (type === "docs") {
             cards.push(`<section class="home-card" id="${id}">\n<h2>${renderInline(title)}</h2>\n${rendered}\n${docs.html}\n</section>`);
@@ -255,7 +255,7 @@ export function buildHome(ctx, guide) {
             throw new ContentError(`unknown card type "${type}" (hero | news | docs | card)`, full, 1);
         }
     }
-    return { tocHtml: `<div class="home-toc-group">\n<h2>이 페이지</h2>\n${toc.join("\n")}\n</div>`, cardsHtml: cards.join("\n") };
+    return { tocHtml: `<div class="home-toc-group">\n<h2>On this page</h2>\n${toc.join("\n")}\n</div>`, cardsHtml: cards.join("\n") };
 }
 
 const PLACEHOLDERS = {

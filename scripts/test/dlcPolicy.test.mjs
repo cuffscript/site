@@ -12,12 +12,12 @@ try {
 }
 const t = (name, fn) => test(name, { skip: !policy && "this Node version cannot execute .ts directly" }, fn);
 
-const BLOCKED = { filesystem: "이유 문장" };
+const BLOCKED = { filesystem: "reason sentence" };
 const file = (path, content) => ({ path, content });
 
 t("finds the declaration in the entry file", () => {
     const u = policy.findBlockedDlcUsage([file("main.cuff", "print(1)\nuse DLC:filesystem\n")], BLOCKED);
-    assert.deepEqual(u, { dlc: "filesystem", reason: "이유 문장", path: "main.cuff", line: 2 });
+    assert.deepEqual(u, { dlc: "filesystem", reason: "reason sentence", path: "main.cuff", line: 2 });
 });
 
 t("finds it in an imported module file, not just the entry", () => {
@@ -58,10 +58,10 @@ t("regex metacharacters in a policy key cannot widen the match", () => {
 });
 
 t("error text reads like an engine error and names the file, line and reason", () => {
-    const text = policy.formatBlockedError({ dlc: "filesystem", reason: "이유", path: "lib/h.cuff", line: 7 }, "E5-005");
-    assert.match(text, /^ERROR: \[E5-005\] Module Error: DLC:filesystem /);
-    assert.match(text, /lib\/h\.cuff:7행 — use DLC:filesystem/);
-    assert.match(text, /hint: 이유$/);
+    const text = policy.formatBlockedError({ dlc: "filesystem", reason: "reason", path: "lib/h.cuff", line: 7 }, "E5-005");
+    assert.match(text, /^ERROR: \[E5-005\] Module Error: The DLC:filesystem library is disabled/);
+    assert.match(text, /at lib\/h\.cuff, line 7 — use DLC:filesystem/);
+    assert.match(text, /hint: reason$/);
 });
 
 test("the shipped policy file blocks filesystem and has a reason for every entry", () => {

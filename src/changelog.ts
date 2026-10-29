@@ -1,5 +1,5 @@
 // Turns the engine's CHANGELOG.md into the short entries shown in the home page's
-// "최신 소식" card. Pure and import-free so it can be unit-tested directly under Node.
+// "Latest news" card. Pure and import-free so it can be unit-tested directly under Node.
 //
 // The changelog is untrusted input as far as this page is concerned: everything is
 // HTML-escaped first, and only inline code / bold are re-enabled afterwards.

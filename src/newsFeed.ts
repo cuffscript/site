@@ -1,4 +1,4 @@
-// Renders the "최신 소식" card on the home page by fetching the real
+// Renders the "Latest news" card on the home page by fetching the real
 // CHANGELOG.md straight from GitHub at runtime.
 //
 // raw.githubusercontent.com serves with permissive CORS (Access-Control-
@@ -67,6 +67,6 @@ export async function renderNewsFeed(listEl: HTMLElement, stateEl: HTMLElement):
     } catch {
         listEl.innerHTML = "";
         stateEl.hidden = false;
-        stateEl.innerHTML = `최신 소식을 불러오지 못했습니다. <a href="${CHANGELOG_BLOB_URL}" target="_blank" rel="noreferrer">GitHub에서 CHANGELOG 직접 보기 →</a>`;
+        stateEl.innerHTML = `Couldn't load the latest news. <a href="${CHANGELOG_BLOB_URL}" target="_blank" rel="noreferrer">View the CHANGELOG on GitHub →</a>`;
     }
 }

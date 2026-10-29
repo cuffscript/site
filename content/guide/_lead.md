@@ -1,4 +1,4 @@
 ---
-title: CuffScript 가이드
+title: CuffScript Guide
 ---
-CuffScript 문법 전체와, 이 브라우저 IDE에서 코드를 실행할 때 알아두면 좋은 내용을 정리했습니다. 왼쪽 목차를 눌러 원하는 항목으로 바로 이동할 수 있습니다.
+This guide covers the whole CuffScript syntax, plus what is worth knowing when you run code in this browser IDE. Use the table of contents on the left to jump to any topic.

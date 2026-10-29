@@ -1,37 +1,35 @@
 ---
-group: 참고
-summary: 흔히 하는 실수, 알려진 제한사항, 관련 링크
+group: Reference
+summary: Common mistakes, known limitations, related links
 ---
 
-## 흔히 하는 실수 {#common-mistakes}
+## Common mistakes {#common-mistakes}
 
-| 실수 | 왜 문제인가 | 고치는 법 |
+| Mistake | Why it's a problem | How to fix it |
 |---|---|---|
-| `list[0]` | 인덱스는 `1`번부터 시작합니다. `0`은 존재하지 않는 위치입니다. | 첫 번째 요소는 `list[1]`. |
-| `if x is 5 do :` | 콜론 앞에 공백이 있으면 문법 에러입니다. | `do:`처럼 콜론을 앞 단어에 바로 붙입니다. |
-| `set constant number retries to 3` | 상수 이름이 전체 대문자가 아닙니다. | `RETRIES`처럼 대문자로 씁니다. |
-| 상수를 `change`로 수정 | 상수는 선언 이후 값을 바꿀 수 없습니다. | 애초에 값이 바뀔 변수라면 `constant` 없이 선언합니다. |
-| 함수 안에서 전역 변수를 바로 읽거나 `change` | 함수는 자신의 로컬 변수만 봅니다. | 먼저 `change 이름 to global`로 연결합니다. ([스코프와 global](#scope)) |
-| `"[num]+"`로 정수 전체를 검사했는데 실패 | `is`/`IS`는 부분이 아니라 **전체 일치**를 검사합니다. | 문자열 일부만 확인하려면 `find`를 씁니다. |
-| `set number x to input()` | `input()`은 항상 `str`을 반환합니다. | `to_number(input())`처럼 `DLC:convert`로 변환합니다. |
-| 블록을 열고 `end`를 빠뜨림 | `if`/`loop`/`func` 등 모든 블록은 여는 만큼 `end`가 있어야 합니다. | 들여쓰기를 기준으로 블록이 하나씩 정확히 닫혔는지 확인합니다. |
+| `list[0]` | Indexes start at `1`. `0` is not a valid position. | The first element is `list[1]`. |
+| `if x is 5 do :` | A space before a colon is a syntax error. | Attach the colon to the word before it, as in `do:`. |
+| `set constant number retries to 3` | The constant name isn't all upper case. | Write it in capitals, like `RETRIES`. |
+| Changing a constant with `change` | A constant can't be changed after it is declared. | If the value needs to change, declare it without `constant`. |
+| Reading or `change`-ing a global variable directly inside a function | A function sees only its own local variables. | Connect it first with `change name to global`. ([Scope and global](#scope)) |
+| `is "[num]+"` fails on text that merely contains a number | `is` / `IS` checks for a **whole-string** match, not a part of the string. | To check only part of a string, use `find`. |
+| `set number x to input()` | `input()` always returns a `str`. | Convert it with `DLC:convert`, as in `to_number(input())`. |
+| Opening a block and forgetting `end` | Every block (`if`, `loop`, `func`, ...) needs one `end` per opener. | Use the indentation to check that each block is closed exactly once. |
 
-## 알려진 제한사항 {#limitations}
+## Known limitations {#limitations}
 
-- **표준 입력** — 실제 키보드 입력이 아니라, stdin 패널에 미리 적어 둔 텍스트를 한 줄씩 소비합니다. 다 소비하면 `input()`은 빈 문자열을 돌려줍니다.
-- **네트워크** — 네이티브 `cuffc`에서는 `DLC:network`가 실제 평문 HTTP 요청을 보냅니다. 이 브라우저 IDE에서는 브라우저 샌드박스가 원시 소켓 접근을
-  막기 때문에 대체로 실패로 끝납니다 (위 DLC 목록 참고).
-- **파일시스템** — `DLC:filesystem`은 네이티브 `cuffc`에서만 쓸 수 있습니다. 이 브라우저 IDE에서는 `use DLC:filesystem`이 프로젝트의
-  어느 파일에든 있으면 실행 자체를 거부합니다 (위 DLC 목록 참고).
-- **재귀 깊이** — 함수 호출 깊이가 1,000을 넘으면 `StackOverflow` ({{error.StackOverflow}}) 런타임 에러로 안전하게 중단됩니다.
-- **실행 시간 제한** — 이 IDE는 무한 루프로부터 탭을 보호하기 위해 실행 시간에 상한을 둡니다 (기본 8초, 언제든 직접 중단 가능).
-- 중첩 함수 정의와 클로저는 언어 자체에서 지원하지 않습니다.
-- **비동기는 동시성이 아닙니다** — `async` 함수는 OS 스레드로 병렬 실행되지 않고, 최상위 동기 코드가 끝난 뒤 순서대로 실행되는 협력 스케줄링입니다.
+- **Standard input**: unless live input is available, `input()` consumes the text pre-filled in the stdin panel one line at a time. Once it is used up, `input()` returns an empty string.
+- **Network**: in the native `cuffc`, `DLC:network` sends real plain-HTTP requests. In this browser IDE the browser sandbox blocks raw socket access, so requests mostly end in failure (see the DLC list above).
+- **File system**: `DLC:filesystem` is available only in the native `cuffc`. In this browser IDE, a `use DLC:filesystem` in any file of the project makes the run refuse to start (see the DLC list above).
+- **Recursion depth**: a function call depth over 1,000 stops the run safely with a `StackOverflow` ({{error.StackOverflow}}) runtime error.
+- **Execution time limit**: to protect the tab from infinite loops, this IDE caps execution time (8 seconds by default; you can always stop a run yourself).
+- Nested function definitions and closures are not supported by the language itself.
+- **Async is not concurrency**: `async` functions don't run in parallel on OS threads. It is cooperative scheduling: they run in order after the top-level synchronous code finishes.
 
-## 관련 링크 {#resources}
+## Related links {#resources}
 
-여기서 다룬 내용은 IDE의 **예제 불러오기** 메뉴에 그대로 실행해 볼 수 있는 예제 {{examples.count}}개로 준비되어 있습니다. 기초부터 순서대로 따라가며 직접 돌려보는 것을 추천합니다.
+Everything covered here is also available as {{examples.count}} runnable examples in the IDE's **Load an example** menu. We recommend working through them in order, from the basics.
 
-- [cuffscript — 엔진/CLI 소스코드]({{site.githubUrl}})
-- [cuffscript-wasm — npm 패키지](https://www.npmjs.com/package/cuffscript-wasm)
-- [CHANGELOG — 버전별 변경사항]({{site.changelogUrl}})
+- [cuffscript: engine and CLI source code]({{site.githubUrl}})
+- [cuffscript-wasm: npm package](https://www.npmjs.com/package/cuffscript-wasm)
+- [CHANGELOG: changes by version]({{site.changelogUrl}})

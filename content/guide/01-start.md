@@ -1,27 +1,22 @@
 ---
-group: 시작하기
+group: Getting started
 home: false
 ---
 
-## CuffScript란 {#intro}
+## What is CuffScript {#intro}
 
-CuffScript는 자연어에 가까운 키워드(`set`, `to`, `do:`, `end`)로 변수·함수·제어 흐름을 표현하는 인터프리터 언어입니다. Python처럼 들여쓰기로
-블록을 구분하고, 배열과 문자열은 1부터 시작하는 인덱스를 사용하며, 정규식은 `\d`, `\w` 같은 기호 대신 `[num]`, `[str]` 같은 읽기 쉬운 토큰으로
-표현합니다.
+CuffScript is an interpreted language that expresses variables, functions and control flow with keywords close to natural language (`set`, `to`, `do:`, `end`). Like Python, it uses indentation to separate blocks. Lists and strings are indexed from 1, and regular expressions are written with readable tokens such as `[num]` and `[str]` instead of symbols like `\d` and `\w`.
 
-## 이 IDE 사용법 {#ide-tour}
+## Using this IDE {#ide-tour}
 
-- **실행 (Ctrl/Cmd + Enter)** — 현재 열려 있는 탭을 진입점으로 실행합니다.
-- **AST 보기** — 코드를 실행하지 않고 토큰·구문 트리만 확인합니다. `cuffc --ast`와 동일한 정보입니다.
-- **표준 입력(stdin)** — `input()`은 실제 키보드 입력을 기다리지 않고, stdin 탭에 미리 적어 둔 텍스트를 위에서부터 한 줄씩 읽습니다. 다 읽고 나면
-  빈 문자열을 반환합니다.
-- **파일 탭** — `+` 버튼으로 파일을 추가해 `use ... from ...`로 서로 불러오는 멀티파일 프로젝트를 만들 수 있습니다. 실행은 항상 현재 활성 탭을
-  진입점으로 삼습니다.
-- **공유 링크** — 현재 프로젝트 전체를 URL에 담아 복사합니다. 별도 서버 저장 없이 링크만으로 코드를 주고받을 수 있습니다.
-- **다운로드** — 현재 탭의 내용을 `.cuff` 파일로 저장합니다.
-- 작업 내용은 브라우저 localStorage에 자동 저장되어, 새로고침해도 유지됩니다.
+- **Run (Ctrl/Cmd + Enter)**: runs the currently open tab as the entry point.
+- **View AST**: shows the tokens and syntax tree without running the code. It is the same information as `cuffc --ast`.
+- **Standard input (stdin)**: `input()` reads the text you pre-fill in the stdin tab, one line at a time from the top, and returns an empty string once it runs out. (In environments that support live input, a field appears in the output panel instead.)
+- **File tabs**: the `+` button adds files, so you can build multi-file projects that load each other with `use ... from ...`. A run always starts from the active tab.
+- **Share link**: copies a URL that contains the whole project. No server storage is involved, so you can pass code around with just a link.
+- **Download**: saves the current tab as a `.cuff` file.
+- Your work is saved automatically in the browser's localStorage, so it survives a refresh.
 
-::: warn 무한 루프 주의
-CuffScript 코드는 브라우저 안의 별도 워커에서 실행됩니다. 실행이 너무 오래 걸리면 (기본 8초) 자동으로 중단되며, 언제든 **중단** 버튼으로 직접 멈출 수도
-있습니다.
+::: warn Beware of infinite loops
+CuffScript code runs in a separate worker inside the browser. If a run takes too long (8 seconds by default) it is stopped automatically, and you can always stop it yourself with the **Stop** button.
 :::

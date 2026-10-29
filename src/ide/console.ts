@@ -7,7 +7,7 @@ export class ConsoleView {
     }
 
     private renderEmpty(): void {
-        this.container.innerHTML = '<div class="console-empty">실행 결과가 여기에 표시됩니다.</div>';
+        this.container.innerHTML = '<div class="console-empty">Output will appear here.</div>';
     }
 
     clear(): void {

@@ -28,7 +28,7 @@ export class TabBar {
                 const close = document.createElement("span");
                 close.className = "tab-close";
                 close.innerHTML = icons.close;
-                close.title = "파일 삭제";
+                close.title = "Delete file";
                 close.addEventListener("click", (event) => {
                     event.stopPropagation();
                     this.callbacks.onClose(path);
@@ -43,7 +43,7 @@ export class TabBar {
         const addBtn = document.createElement("div");
         addBtn.className = "tab-add";
         addBtn.innerHTML = icons.plus;
-        addBtn.title = "파일 추가";
+        addBtn.title = "Add file";
         addBtn.addEventListener("click", () => this.callbacks.onAdd());
         this.container.appendChild(addBtn);
     }
