@@ -20,7 +20,7 @@ Constants are declared with `set constant [type] [name] to [value]`. The name mu
 
 ```cuff
 set constant number MAX_RETRIES to 3
-set constant str API_URL to "https://cufflang.dev"
+set constant str API_URL to "https://cuffscript.pages.dev"
 ```
 
 `constant` also works with `list` and `map`. A constant list is fully read-only, like a Python tuple: adding, removing and index assignment are all runtime errors, and it stays read-only when you assign it to another variable or pass it to a function. The protection is *shallow*, though: a list or map stored inside a constant list can still be changed. A constant map refuses `change CONFIG["key"] to ...` and `remove "key" from CONFIG`, but the map itself is not frozen: another variable that was given the same map can still change it, and the constant then shows that change. Copy it with `map_merge(CONFIG, {})` when you need an independent map.
