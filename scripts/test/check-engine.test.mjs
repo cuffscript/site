@@ -36,14 +36,14 @@ test("the real site passes against the real engine", { skip }, () => {
 });
 
 test("catches a snippet that still uses a pre-3.0 function name", { skip }, () => {
-    const dir = brokenCopy((d) => patch(d, "content/guide/07-modules.md", (s) => s.replace("print(math_sqrt(16))", "print(sqrt(16))")));
+    const dir = brokenCopy((d) => patch(d, "content/guide/08-modules.md", (s) => s.replace("print(math_sqrt(16))", "print(sqrt(16))")));
     const r = check(dir);
     assert.equal(r.code, 1);
     assert.match(r.text, /undefined function 'sqrt'/);
 });
 
 test("catches a documented output that no longer matches what the engine prints", { skip }, () => {
-    const dir = brokenCopy((d) => patch(d, "content/guide/06-patterns.md", (s) => s.replace("```output\nT-123", "```output\nT-000")));
+    const dir = brokenCopy((d) => patch(d, "content/guide/07-patterns.md", (s) => s.replace("```output\nT-123", "```output\nT-000")));
     const r = check(dir);
     assert.equal(r.code, 1);
     assert.match(r.text, /printed something different from the ```output block/);
@@ -64,7 +64,7 @@ test("catches a web policy that blocks a library that does not exist", { skip },
 });
 
 test("catches an intentionally-erroring snippet that stopped erroring", { skip }, () => {
-    const dir = brokenCopy((d) => patch(d, "content/guide/05-errors.md", (s) => s.replace("```cuff error=DivisionByZero\nset number a to 10\nset number b to 0\nprint(a / b)", "```cuff error=DivisionByZero\nset number a to 10\nset number b to 5\nprint(a / b)")));
+    const dir = brokenCopy((d) => patch(d, "content/guide/06-errors.md", (s) => s.replace("```cuff error=DivisionByZero\nset number a to 10\nset number b to 0\nprint(a / b)", "```cuff error=DivisionByZero\nset number a to 10\nset number b to 5\nprint(a / b)")));
     const r = check(dir);
     assert.equal(r.code, 1);
     assert.match(r.text, /expected E4-006 but the snippet ran successfully/);

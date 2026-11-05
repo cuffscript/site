@@ -10,8 +10,8 @@ To load another `.cuff` file in the same project, write `use [name] from [relati
 ```cuff
 note: lib/greetings.cuff
 set constant str DEFAULT_GREETING to "Hello"
-set returnable func greet(name) do:
-    change DEFAULT_GREETING to global
+func greet(name) do:
+    global DEFAULT_GREETING
     return DEFAULT_GREETING + ", " + name + "!"
 end
 ```
@@ -25,7 +25,7 @@ print(DEFAULT_GREETING)
 
 ## Built-in DLC list {#dlc}
 
-Official built-in libraries are loaded with a single `use DLC:name` line, and several can be loaded on one line separated by commas, as in `use DLC:math, DLC:string` (each item needs its own `DLC:`). All of their functions are registered as global names, so you call them directly, without a `DLC:` prefix.
+Official built-in libraries are loaded with a single `use DLC:name` line, and several can be loaded on one line separated by commas, as in `use DLC:math, DLC:string` (each item needs its own `DLC:`). All of their functions are registered as global names, so you call them directly, without a `DLC:` prefix. A function whose first argument is the value it works on can also be called as a method, as in `text.upper()` ([Calling a function as a method](#methods)).
 
 ::: callout Every function name is "library_verb"
 `sqrt` → `math_sqrt`, `upper` → `str_upper`, `get` → `network_get`: a library prefix tells you from the name alone which `use` line a function came from. The only exceptions are `length` / `contains` / `index_of` (provided by the string, list and map libraries, and deliberately behaving the same across them, although `index_of` comes from the string and list libraries only) and `to_json` / `from_json` / `to_number` / `to_str` / `to_boolean` (whose names already show their direction).
@@ -93,10 +93,10 @@ print(list_unique(scores))    note: [5, 2, 8, 1, 9]
 
 note: list_join() takes only a list of strings, so convert numbers with to_str() first
 set list score_strs to []
-loop repeat i to 1 ~ 5 do:
-    add to_str(scores[i]) to score_strs
+loop each score in scores do:
+    add to_str(score) to score_strs
 end
-print(list_join(score_strs, ", "))   note: "5, 2, 8, 1, 9"
+print(list_join(score_strs, ", "))   note: "5, 2, 8, 1, 9, 2"
 ```
 
 ### `DLC:map`
@@ -112,11 +112,8 @@ print(map_keys(profile))          note: ["name", "level"]
 print(map_values(profile))        note: ["Bob", 12]
 print(map_has_key(profile, "level"))   note: true
 
-note: loop repeat only ever runs over a number range (start ~ end), so go through
-note: a list by index. map_entries() returns a list of [key, value] pairs.
-set list pairs to map_entries(profile)
-loop repeat i to 1 ~ length(pairs) do:
-    set list entry to pairs[i]
+note: map_entries() returns a list of [key, value] pairs, which loop each can go through
+loop each entry in map_entries(profile) do:
     print(f"{entry[1]} = {entry[2]}")
 end
 

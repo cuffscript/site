@@ -23,7 +23,7 @@ set constant number MAX_RETRIES to 3
 set constant str API_URL to "https://cuffscript.pages.dev"
 ```
 
-`constant` also works with `list` and `map`. A constant list is fully read-only, like a Python tuple: adding, removing and index assignment are all runtime errors, and it stays read-only when you assign it to another variable or pass it to a function. The protection is *shallow*, though: a list or map stored inside a constant list can still be changed. A constant map refuses `change CONFIG["key"] to ...` and `remove "key" from CONFIG`, but the map itself is not frozen: another variable that was given the same map can still change it, and the constant then shows that change. Copy it with `map_merge(CONFIG, {})` when you need an independent map.
+`constant` also works with `list` and `map`. A constant list is fully read-only, like a Python tuple: adding, removing and index assignment are all runtime errors, and it stays read-only when you assign it to another variable or pass it to a function. The protection is *shallow*, though: a list or map stored inside a constant list can still be changed. A constant map refuses `change CONFIG["key"] to ...` and `remove "key" from CONFIG`, but the map itself is not frozen: another variable that was given the same map can still change it, and the constant then shows that change. Copy it with `copy(CONFIG)` when you need an independent map.
 
 ```cuff error=ConstantReassignment
 set constant list PRIMES to [2, 3, 5, 7, 11]
@@ -38,7 +38,7 @@ set constant map SETTINGS to {"volume": 5}
 change SETTINGS["volume"] to 9    note: runtime error, a constant map can't be changed through its name
 ```
 
-Words such as `add`, `count`, `find`, `split`, `replace`, `match`, `in`, `by`, `not` and `global` can also be used as the names of variables, functions, parameters and loop variables (`set number count to 3`). A word that has its own syntax, like `find`, is treated as syntax only when that syntax follows it, and as an ordinary name otherwise. The exception is `and` and `or`: they are operators, so they can't be used as names.
+{{engine.keywordCount}} words are reserved and can't be the name of a variable, function or parameter: {{engine.keywords}}. If an older program uses one, rename it (a trailing underscore, as in `each_`, is enough). Type names are not reserved: a type name is a type only where a type may stand (`set list items to []`, a parameter `list items`) and an ordinary name everywhere else, so `set list list to [1]` is valid.
 
 ## Data types {#types}
 
@@ -49,6 +49,8 @@ Words such as `add`, `count`, `find`, `split`, `replace`, `match`, `in`, `by`, `
 | `boolean` | True or false | `true`, `false` |
 | `list` | 1-based ordered list | `["a", "b"]` |
 | `map` | Dictionary with string keys | `{"k": "v"}` |
+| `pattern` | A pattern value ([Pattern matching](#patterns)) | `p"[num]+"` |
+| `object` or a class name | An instance of a class ([Classes](#classes)) | `Player("Ann")` |
 | `empty` | No value | `empty` |
 
 Function parameters can be written without a type, and you can add one if you like ([Defining functions](#functions)). An f-string (`f"..."`) embeds expressions in a string, and to print a brace itself you write it twice, as `{{` `}}`.
@@ -82,19 +84,24 @@ Passed
 
 ## Operators {#operators}
 
-`is` is a normal equality check, and `IS` is a comparison that **ignores English letter case**. `!` flips a boolean.
+`is` compares two values for equality. Two objects are equal only when they are the same object, and two patterns when their source and flags are the same. It never reads a string as a pattern: to test text against a pattern, use `matches` ([Pattern matching](#patterns)). `!` flips a boolean.
 
 ```cuff
-set str input_text to "Apple"
+set str answer to "Yes"
 
-if input_text is "apple" do: print("Not run: the case differs") end
-if input_text IS "apple" do: print("Runs because IS ignores case") end
+if answer is "yes" do: print("Not run: the case differs") end
+if answer matches p"yes"i do: print("Runs because the i flag ignores case") end
 
 set boolean is_active to false
 if !is_active do: print("Runs because ! flips the value") end
 ```
 
-Combine conditions with `and` and `or` (`&&` and `||` mean the same). The operands can be of any type, and the result is always a `boolean`. When the left side alone decides the result, the right side is not evaluated, so `x is not 0 and 10 / x > 1` never divides by zero.
+```output
+Runs because the i flag ignores case
+Runs because ! flips the value
+```
+
+Combine conditions with `and` and `or`. The operands can be of any type, and the result is always a `boolean`. When the left side alone decides the result, the right side is not evaluated, so `x is not 0 and 10 / x > 1` never divides by zero.
 
 ```cuff
 set number age to 30

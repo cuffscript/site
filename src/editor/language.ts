@@ -62,6 +62,9 @@ function token(stream: StringStream, state: CuffState): string | null {
         return "string";
     }
 
+    // the p of a pattern literal p"..." belongs to the string
+    if (stream.match(/^p(?=")/)) return "string";
+
     if (stream.match(/^f"/)) {
         state.inFString = true;
         return "string";

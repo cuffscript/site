@@ -87,6 +87,7 @@ print(1 + 2)
 | `{{engine.functionCount}}` / `{{engine.errorCodeCount}}` | 내장 함수 / 에러 코드 개수 |
 | `{{error.에러이름}}` | 엔진이 출력하는 에러 코드 (예: `{{error.DivisionByZero}}` → 코드). 글에 번호를 직접 적지 마세요. |
 | `{{examples.count}}` | IDE 예제 개수 |
+| `{{engine.keywords}}` / `{{engine.keywordCount}}` | 예약어 목록(코드 서식 포함) / 개수 |
 | `{{docs.count}}` | 가이드 그룹 개수 (홈 전용) |
 | `{{site.githubUrl}}` `{{site.blobUrl}}` `{{site.cloneUrl}}` `{{site.changelogUrl}}` `{{site.repoName}}` | 저장소 주소들 (`src/siteConfig.json`) |
 
@@ -113,5 +114,8 @@ npm run update:engine
 - **검사가 알려주는 것**: 더 이상 안 도는 예제, 존재하지 않는 함수 이름을 언급한 글, 결과가 달라진 출력.
   이건 **사람이 문장을 고쳐야** 하는 부분이고, 어느 파일 몇 번째 줄인지 알려줍니다.
 - 스코프 규칙처럼 **문장으로 설명한 규칙**이 바뀌면 검사로는 못 잡습니다. 엔진 CHANGELOG를 보고 해당 글을 고치세요. 같은 규칙은 한 곳([스코프와 global])에만 설명하고 나머지는 링크로 가리키면 고칠 곳이 줄어듭니다.
+- **IDE 예제**는 엔진의 `examples/`를 그대로 가져옵니다: `npm run sync:examples` (엔진 폴더 찾는 규칙은 위와 같음).
+  모듈을 쓰는 예제는 폴더 프로젝트로 바뀌고, 브라우저에서 못 도는 라이브러리(파일시스템)를 쓰는 예제는 자동으로 빠집니다.
+  메뉴 이름은 `src/examples/labels.json`에서 고치세요 (기존 이름은 유지, 새 예제만 파일명으로 자동 생성).
 - 엔진이 없으면 `node scripts/sync-engine.mjs --clone`으로 GitHub에서 받아올 수 있습니다.
 - GitHub Actions(`.github/workflows/engine-compat.yml`)가 매주 이 검사를 대신 돌려 줍니다.

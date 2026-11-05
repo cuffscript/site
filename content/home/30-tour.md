@@ -9,8 +9,9 @@ The guide covers the full syntax step by step; here is just a quick look at what
 |---|---|---|
 | Variable | `set number x to 10` | Declare with `set`, reassign with `change ... to` |
 | Constant | `set constant list PRIMES to [2, 3, 5]` | Names are ALL-CAPS; lists can be frozen like tuples |
-| Conditions and loops | `if x > 0 do: ... end` | Every block is wrapped in `do:` ... `end` |
-| Functions | `set pure returnable async func f() do: ... end` | Combine `pure`, `returnable` and `async` freely |
-| Pattern matching | `find "[num]+" from text` | Readable names like `[num]` instead of `\d` |
-| Error recovery | `risky() or_else do: ... end` | Recovers only from calls that raise an error, like a game's restart button |
+| Conditions and loops | `if x > 0 do: ... end` | Every block is wrapped in `do:` ... `end`; `loop each` visits a collection |
+| Functions | `async pure func f() do: ... end` | `async` and `pure` are optional and can be combined |
+| Classes | `class Hero extends Player do: ... end` | Fields, methods, inheritance and `private` members |
+| Pattern matching | `text matches p"[num]+"` | Readable names like `[num]` instead of `\d` |
+| Error recovery | `risky() or_else as err do: ... end` | Recovers only from calls that raise an error, like a game's restart button; `err` is an object |
 | Built-in libraries | `use DLC:map` | {{engine.dlcCount}} libraries: {{engine.dlcNames}} |

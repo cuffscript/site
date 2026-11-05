@@ -24,10 +24,17 @@ static const std::unordered_map<std::string, TokenType> &keywordMap() {
         {"set", TokenType::SET}, {"change", TokenType::CHANGE}, {"if", TokenType::IF},
         {"else", TokenType::ELSE}, {"loop", TokenType::LOOP}, {"do", TokenType::DO},
         {"end", TokenType::END}, {"func", TokenType::FUNCTION}, {"pure", TokenType::PURE},
-        {"number", TokenType::NUMBER_TYPE}, {"str", TokenType::STR_TYPE},
         {"true", TokenType::TRUE}, {"false", TokenType::FALSE}, {"empty", TokenType::EMPTY},
     };
     return m;
+}`;
+
+const TYPES = `
+inline bool builtinTypeFromName(const std::string &word, TypeKind &out)
+{
+    static const struct { const char *word; TypeKind kind; } table[] = {
+        {"number", TypeKind::Number}, {"str", TypeKind::Str}, {"empty", TypeKind::Empty}};
+    return false;
 }`;
 
 const ERRORS = `
@@ -86,6 +93,7 @@ inline void registerExtraDLC(std::unordered_map<std::string, NativeFn> &reg)
 
 const baseFiles = () => ({
     "engine/lexer/KeywordClassifier.h": KEYWORDS,
+    "engine/parser/ASTNodes.h": TYPES,
     "engine/common/ErrorCodes.h": ERRORS,
     "engine/interpreter/NativeFunctions.h": CORE,
     "engine/dlc/MathDLC.h": MATH,

@@ -5,7 +5,7 @@ home: false
 
 ## What is CuffScript {#intro}
 
-CuffScript is an interpreted language that expresses variables, functions and control flow with keywords close to natural language (`set`, `to`, `do:`, `end`). Like Python, it uses indentation to separate blocks. Lists and strings are indexed from 1, and regular expressions are written with readable tokens such as `[num]` and `[str]` instead of symbols like `\d` and `\w`.
+CuffScript is an interpreted language that expresses variables, functions, classes and control flow with keywords close to natural language (`set`, `to`, `do:`, `end`). Like Python, it uses indentation to separate blocks. Lists and strings are indexed from 1, and patterns (regular expressions) are written with readable tokens such as `[num]` and `[str]` instead of symbols like `\d` and `\w`.
 
 ## Using this IDE {#ide-tour}
 

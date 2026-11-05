@@ -131,9 +131,14 @@ export function extractEngineMeta(engineDir) {
     const kwBody = braceBody(kw.text, kw.match.index);
     const entries = [...kwBody.matchAll(/\{\s*"([^"]+)"\s*,\s*TokenType::([A-Z_]+)\s*\}/g)].map((m) => [m[1], m[2]]);
     if (entries.length < 10) throw new Error("keyword map looks empty — the lexer layout may have changed");
-    const types = entries.filter(([, t]) => t.endsWith("_TYPE")).map(([w]) => w);
     const literals = entries.filter(([, t]) => ["TRUE", "FALSE", "EMPTY"].includes(t)).map(([w]) => w);
-    const keywords = entries.filter(([, t]) => !t.endsWith("_TYPE") && !["TRUE", "FALSE"].includes(t)).map(([w]) => w);
+    const keywords = entries.filter(([, t]) => !["TRUE", "FALSE"].includes(t)).map(([w]) => w);
+
+    // Type names are not reserved words: they come from the table behind `set <type> name`.
+    const typeFn = src.find(/builtinTypeFromName\s*\([^)]*\)\s*\{/, "builtinTypeFromName()");
+    const typeBody = braceBody(typeFn.text, typeFn.match.index);
+    const types = [...typeBody.matchAll(/\{\s*"(\w+)"\s*,\s*TypeKind::\w+\s*\}/g)].map((m) => m[1]).filter((w) => !literals.includes(w));
+    if (types.length === 0) throw new Error("no type names found in builtinTypeFromName() — the parser layout may have changed");
 
     // ---- DLC libraries: order and names come from the table behind `use DLC:name`.
     // A row looks like {"math", [](NativeTable &reg, ...) { registerMathDLC(reg); }}

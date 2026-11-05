@@ -28,6 +28,7 @@ import { spawnSync } from "node:child_process";
 import { extractCodeBlocks, parseFrontmatter } from "./lib/markdown.mjs";
 import { extractEngineMeta, describeDiff } from "./lib/engine-meta.mjs";
 import { findErrorTag, errorTagNumber } from "./lib/errorTag.mjs";
+import { engineCandidates as findEngineCandidates } from "./lib/engine-dir.mjs";
 
 const args = process.argv.slice(2);
 // --root lets tests point the checker at a deliberately broken copy of the site.
@@ -40,7 +41,7 @@ const opt = (name) => {
 };
 
 // Where the engine lives: --engine, $CUFFSCRIPT_ENGINE, or a sibling folder (same rule as sync-engine.mjs).
-const engineCandidates = [opt("--engine"), process.env.CUFFSCRIPT_ENGINE, path.join(root, "../cuffscript"), path.join(root, "../cuffscript-main")].filter(Boolean);
+const engineCandidates = findEngineCandidates(root, opt("--engine"));
 
 function findCuffc() {
     const candidates = [opt("--cuffc"), process.env.CUFFC, ...engineCandidates.flatMap((d) => [path.join(d, "cuffc"), path.join(d, "cuffc.exe")])].filter(Boolean);

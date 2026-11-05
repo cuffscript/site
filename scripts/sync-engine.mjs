@@ -15,6 +15,7 @@ import path from "node:path";
 import { fileURLToPath } from "node:url";
 import { spawnSync } from "node:child_process";
 import { extractEngineMeta, verifyAgainstBinary, describeDiff } from "./lib/engine-meta.mjs";
+import { engineCandidates } from "./lib/engine-dir.mjs";
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 const outFile = path.join(root, "src/generated/engine-meta.json");
@@ -45,7 +46,7 @@ function resolveEngineDir() {
         if (r.status !== 0) fail("git clone failed");
         return tmp;
     }
-    const candidates = [positional, process.env.CUFFSCRIPT_ENGINE, path.join(root, "../cuffscript"), path.join(root, "../cuffscript-main")].filter(Boolean);
+    const candidates = engineCandidates(root, positional);
     const found = candidates.find((c) => fs.existsSync(path.join(c, "engine")));
     if (!found) {
         fail(

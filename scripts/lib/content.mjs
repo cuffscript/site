@@ -85,6 +85,9 @@ export function buildVars(ctx, extra = {}) {
         "engine.version": ctx.meta.engineVersion,
         "engine.dlcCount": names.length,
         "engine.dlcNames": names.join("/"),
+        // every reserved word, as inline code (the literals true/false are reserved too)
+        "engine.keywords": [...ctx.meta.keywords, ...ctx.meta.literals.filter((w) => w !== "empty")].map((w) => `\`${w}\``).join(", "),
+        "engine.keywordCount": ctx.meta.keywords.length + ctx.meta.literals.filter((w) => w !== "empty").length,
         "engine.functionCount": names.reduce((n, d) => n + (ctx.meta.dlc[d]?.functions.length ?? 0), 0),
         "engine.errorCodeCount": ctx.meta.errorCodes.length,
         "examples.count": countExamples(path.join(ctx.root, "src/examples")),

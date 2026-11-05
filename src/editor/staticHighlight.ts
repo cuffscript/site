@@ -125,8 +125,10 @@ export function highlightCuff(code: string): string {
             continue;
         }
 
-        if (ch === '"') {
-            let j = i + 1;
+        // a pattern literal p"..." is highlighted as one string
+        const isPattern = ch === "p" && code[i + 1] === '"';
+        if (ch === '"' || isPattern) {
+            let j = isPattern ? i + 2 : i + 1;
             while (j < n && code[j] !== '"') {
                 j += code[j] === "\\" ? 2 : 1;
             }

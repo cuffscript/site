@@ -8,7 +8,7 @@ A recursive Fibonacci example.
 :::
 
 ```cuff
-set returnable func fib(n) do:
+func fib(n) do:
     if n <= 1 do: return n end
     return fib(n - 1) + fib(n - 2)
 end
