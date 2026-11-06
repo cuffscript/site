@@ -35,8 +35,8 @@ test("the real site passes against the real engine", { skip }, () => {
     assert.equal(r.code, 0, r.text);
 });
 
-test("catches a snippet that still uses a pre-3.0 function name", { skip }, () => {
-    const dir = brokenCopy((d) => patch(d, "content/guide/08-modules.md", (s) => s.replace("print(math_sqrt(16))", "print(sqrt(16))")));
+test("catches a snippet that uses a function name the engine does not have", { skip }, () => {
+    const dir = brokenCopy((d) => patch(d, "content/guide/08-modules.md", (s) => s.replace("print(math_sqrt(16),", "print(sqrt(16),")));
     const r = check(dir);
     assert.equal(r.code, 1);
     assert.match(r.text, /undefined function 'sqrt'/);
