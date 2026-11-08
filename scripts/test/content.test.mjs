@@ -153,3 +153,11 @@ test("{{error.Name}} prints the engine's own tag, and the guide uses it instead 
         assert.doesNotMatch(read(`content/guide/${f}`), /\bE\d-\d{3}\b|\bE\d{4}\b/, `${f}: type {{error.Name}} instead of a literal code`);
     }
 });
+
+test("home: the playground card holds the starting code and a verified sample output", () => {
+    assert.match(home.cardsHtml, /<textarea class="try-code" id="try-code" rows="\d+"[^>]*>note: Edit me/);
+    assert.match(home.cardsHtml, /<pre class="try-output" id="try-output" data-sample[^>]*>Ada looks like a proper name/);
+    for (const id of ["try-run", "try-run-label", "try-status", "try-ide", "icon-try-play"]) {
+        assert.ok(home.cardsHtml.includes(`id="${id}"`), `home.ts looks for #${id}`);
+    }
+});

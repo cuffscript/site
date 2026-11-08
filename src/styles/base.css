@@ -671,6 +671,80 @@ pre {
     line-height: 1.65;
 }
 
+/* "Try it now": an editable snippet with a Run button and its output. */
+.try-code,
+.try-output {
+    display: block;
+    width: 100%;
+    margin: 0;
+    padding: 14px 16px;
+    border: 1px solid var(--border);
+    background: var(--bg-elevated);
+    color: var(--text);
+    font-family: var(--font-mono);
+    font-size: 12.8px;
+    line-height: 1.65;
+}
+
+.try-code {
+    resize: vertical;
+    border-radius: var(--radius) var(--radius) 0 0;
+    tab-size: 4;
+    white-space: pre;
+    overflow-x: auto;
+}
+
+.try-code:focus-visible {
+    outline: 2px solid var(--accent);
+    outline-offset: -2px;
+}
+
+.try-bar {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 8px;
+    padding: 8px 10px;
+    border: 1px solid var(--border);
+    border-top: 0;
+    background: var(--bg);
+}
+
+.try-status {
+    margin-left: auto;
+    font-size: 12.5px;
+    color: var(--text-muted);
+}
+
+.home-card pre.try-output {
+    margin: 0;
+    border-top: 0;
+    border-radius: 0 0 var(--radius) var(--radius);
+    background: var(--bg-inset);
+    min-height: 3.2em;
+    white-space: pre-wrap;
+}
+
+.try-output::before {
+    content: "Output";
+    display: block;
+    margin-bottom: 4px;
+    font-family: var(--font-ui);
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    color: var(--text-faint);
+}
+
+.try-output[data-sample]::before {
+    content: "Example output (press Run for the live result)";
+}
+
+.try-error {
+    color: var(--danger);
+}
+
 .home-card-hero {
     padding-top: 32px;
 }

@@ -5,7 +5,7 @@ summary: Reading error reports, or_else, error objects, fail, the error codes
 
 ## Reading an error report {#error-report}
 
-When something goes wrong, the engine stops the program and prints a report. A real report looks like this for the code below. It names the error, says where it happened, shows the source line, and puts a `^` under the exact position (columns count characters, and the `^` stays lined up even after wide or multi-byte characters such as CJK text or emoji). For some errors it adds a `hint:` line with a suggestion.
+When something goes wrong, the engine stops the program and prints a report. A real report looks like this for the code below. The first line names the error and says where it happened. Under it comes the numbered source line, with `^` marks under the part of the line that the error is about (one `^` for a single character such as `/`, and one for each character of a name, a number or a text) and the message written beside the marks. Columns count characters, and the marks stay lined up even after wide or multi-byte characters such as CJK text or emoji. For some errors a `hint:` with a suggestion follows after a blank line.
 
 ```cuff error=DivisionByZero
 set number a to 10
@@ -14,9 +14,10 @@ print(a / b)   note: there is no or_else, so the program stops here and prints t
 ```
 
 ```text vars
-ERROR: [{{error.DivisionByZero}}] Runtime Error at line 3, column 9: division by zero
-    print(a / b)
-            ^
+ERROR: [{{error.DivisionByZero}}] Runtime Error at line 3, column 9
+  |
+3 | print(a / b)
+  |         ^ division by zero
 ```
 
 The tag in brackets, here {{error.DivisionByZero}}, identifies the error: `E`, then a category digit, a dash and a number. A program that ends with an error exits with a non-zero status. In this IDE the output panel shows the report in red and the run status changes to Error. Mistakes in the source itself (a stray character, a space before a colon, an unterminated text, a missing `end`, bad indentation) are found before the program runs; the engine reports them as a syntax error and the message says what is wrong.

@@ -209,6 +209,17 @@ function docsGridHtml(guide) {
     return { html: `<div class="home-docs-grid">\n${items.join("\n")}\n</div>`, count: items.length };
 }
 
+/** The playground card: its first ```cuff block is the editable code, an ```output block after it is the sample output. */
+function splitPlayground(body, file, line) {
+    const fence = (lang) => new RegExp("```" + lang + "[^\\n]*\\n([\\s\\S]*?)\\n```\\n?");
+    const code = fence("cuff").exec(body);
+    if (!code) throw new ContentError("a playground card needs a ```cuff block with the starting code", file, line);
+    let intro = body.replace(code[0], "");
+    const out = fence("output").exec(intro);
+    if (out) intro = intro.replace(out[0], "");
+    return { code: code[1], output: out ? out[1] : "", intro };
+}
+
 export function buildHome(ctx, guide) {
     const dir = path.join(ctx.root, "content/home");
     const docs = docsGridHtml(guide);
@@ -252,10 +263,21 @@ export function buildHome(ctx, guide) {
             );
         } else if (type === "docs") {
             cards.push(`<section class="home-card" id="${id}">\n<h2>${renderInline(title)}</h2>\n${rendered}\n${docs.html}\n</section>`);
+        } else if (type === "playground") {
+            const pg = splitPlayground(body, full, bodyLine);
+            const intro = renderMarkdown(pg.intro, { file: full, firstLine: bodyLine, vars, include, wrapTables: "table-scroll" }).html;
+            const rows = pg.code.split("\n").length + 1;
+            cards.push(
+                `<section class="home-card home-card-try" id="${id}">\n<h2>${renderInline(title)}</h2>\n${intro}\n` +
+                `<div class="try">\n<textarea class="try-code" id="try-code" rows="${rows}" spellcheck="false" autocomplete="off" aria-label="CuffScript code">${escapeText(pg.code)}</textarea>\n` +
+                `<div class="try-bar">\n<button class="btn btn-primary" id="try-run" type="button"><span id="icon-try-play" class="home-btn-icon"></span><span id="try-run-label">Run</span></button>\n` +
+                `<a class="btn" id="try-ide" href="/ide/">Open in the IDE</a>\n<span class="try-status" id="try-status"></span>\n</div>\n` +
+                `<pre class="try-output" id="try-output" data-sample aria-live="polite">${escapeText(pg.output)}</pre>\n</div>\n</section>`,
+            );
         } else if (type === "card") {
             cards.push(`<section class="home-card" id="${id}">\n<h2>${renderInline(title)}</h2>\n${rendered}\n</section>`);
         } else {
-            throw new ContentError(`unknown card type "${type}" (hero | news | docs | card)`, full, 1);
+            throw new ContentError(`unknown card type "${type}" (hero | news | docs | card | playground)`, full, 1);
         }
     }
     return { tocHtml: `<div class="home-toc-group">\n<h2>On this page</h2>\n${toc.join("\n")}\n</div>`, cardsHtml: cards.join("\n") };

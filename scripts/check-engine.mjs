@@ -63,7 +63,12 @@ const counts = { run: 0, skipped: 0, outputs: 0, examples: 0, names: 0 };
 const fail = (where, msg) => failures.push(`${where}\n      ${msg.replace(/\n/g, "\n      ")}`);
 
 const meta = JSON.parse(fs.readFileSync(path.join(root, "src/generated/engine-meta.json"), "utf8"));
-const firstLine = (s) => (s.trim().split("\n")[0] ?? "").slice(0, 160);
+// The report header plus the message that the engine writes beside the ^ marks.
+const firstLine = (s) => {
+    const lines = s.trim().split("\n");
+    const message = lines.map((l) => /^\s*\|\s*\^+ (.*)$/.exec(l)?.[1]).find(Boolean);
+    return ((lines[0] ?? "") + (message ? `: ${message}` : "")).slice(0, 200);
+};
 
 function runScript(file, cwd) {
     const r = spawnSync(cuffc, ["--timeout", "8000", file], { cwd, encoding: "utf8", input: "", timeout: 20000 });

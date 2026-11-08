@@ -7,7 +7,13 @@ summary: Values and types, variables and constants, text, operators, indexing, c
 
 A statement is written on one line. The only exception is inside brackets: the elements of a list or map and the arguments of a call may continue over several lines between the opening and the closing bracket, and a list or map may end with a trailing comma. A line cannot end in the middle of an expression, so `set number x to 1 +` is a syntax error.
 
-A statement that owns a block (`if`, `loop`, `func`, `class`, `with` and the `or_else` handler) ends its header line with `do:`, holds a body of further statements, and is closed by its own `end`. A missing or surplus `end` is a syntax error. Write each body line one level deeper than its header. You can indent with spaces or tabs (a tab counts as four columns), but keep to one style within a file. A line that returns to an indentation level that no enclosing block uses is rejected as inconsistent indentation. Blank lines are ignored.
+A statement that owns a block (`if`, `loop`, `func`, `class`, `with` and the `or_else` handler) ends its header line with `do:`, holds a body of further statements, and is closed by its own `end`. A missing or surplus `end` is a syntax error. Write each body line one level deeper than its header, and every line of the body at the same level. You can indent with spaces or tabs (a tab counts as four columns), but keep to one style within a file. The engine enforces this: a body written on its own lines that is not indented is a syntax error, and so is a line indented deeper than the rest of its body ("unexpected indentation") or one that returns to a level that no enclosing block uses ("inconsistent indentation"). `end` still closes the block; indentation alone does not. An empty body needs no indentation, because `end` (or `else`) may follow the `do:` line directly. Blank lines are ignored.
+
+```cuff error=UnexpectedToken
+if true do:
+print("not indented")   note: the body must be one level deeper than the header
+end
+```
 
 When a block's body and its `end` fit on the header's line, no indentation is needed. This one-line form is convenient for short bodies:
 
