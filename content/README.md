@@ -34,7 +34,8 @@ home: false                       # 홈 카드에서 빼려면
 ---
 ```
 
-홈 카드는 `id:`, `title:`, 선택으로 `toc:`(사이드바에 보일 짧은 이름), `type:`(`hero` / `news` / `docs` / `playground`, 생략하면 일반 카드).
+홈 카드는 `id:`, `title:`, 선택으로 `toc:`(사이드바에 보일 짧은 이름), `type:`(`hero` / `news` / `docs` / `playground` / `features`, 생략하면 일반 카드).
+`features`는 본문의 `### 제목` 하나하나가 타일 하나가 됩니다(글 + 짧은 코드). 타일 안의 `cuff` 코드와 `output`도 엔진이 검사합니다.
 `playground`는 본문의 첫 ` ```cuff ` 블록이 **편집해서 실행할 수 있는 코드**가 되고, 그 바로 뒤의 ` ```output ` 블록이 실행 전에 보이는 예시 출력이 됩니다(둘 다 엔진이 검사합니다).
 
 ## 문법

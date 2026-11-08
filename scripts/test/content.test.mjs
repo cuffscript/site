@@ -161,3 +161,10 @@ test("home: the playground card holds the starting code and a verified sample ou
         assert.ok(home.cardsHtml.includes(`id="${id}"`), `home.ts looks for #${id}`);
     }
 });
+
+test("home: the highlights card is a grid of tiles, each with a title", () => {
+    const tiles = [...home.cardsHtml.matchAll(/<article class="home-feature">\n<h3>([^<]+)<\/h3>/g)].map((m) => m[1]);
+    assert.ok(tiles.length >= 3, "several tiles");
+    assert.ok(tiles.includes("Counting starts at 1"));
+    assert.ok(home.cardsHtml.includes('<div class="home-features">'));
+});

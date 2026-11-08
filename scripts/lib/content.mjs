@@ -220,6 +220,13 @@ function splitPlayground(body, file, line) {
     return { code: code[1], output: out ? out[1] : "", intro };
 }
 
+/** Splits a card body into the text before the first `### ` heading and one part per `### ` heading. */
+function splitByHeading(body) {
+    const parts = body.split(/^### /m);
+    const intro = parts.shift() ?? "";
+    return { intro, items: parts.map((p) => ({ title: p.slice(0, p.indexOf("\n")).trim(), text: p.slice(p.indexOf("\n") + 1) })) };
+}
+
 export function buildHome(ctx, guide) {
     const dir = path.join(ctx.root, "content/home");
     const docs = docsGridHtml(guide);
@@ -263,6 +270,15 @@ export function buildHome(ctx, guide) {
             );
         } else if (type === "docs") {
             cards.push(`<section class="home-card" id="${id}">\n<h2>${renderInline(title)}</h2>\n${rendered}\n${docs.html}\n</section>`);
+        } else if (type === "features") {
+            const opts = { file: full, firstLine: bodyLine, vars, include, wrapTables: "table-scroll" };
+            const { intro, items } = splitByHeading(body);
+            if (items.length === 0) throw new ContentError("a features card needs '### Title' sections", full, bodyLine);
+            const tiles = items.map((it) => `<article class="home-feature">\n<h3>${renderInline(it.title)}</h3>\n${renderMarkdown(it.text, opts).html}\n</article>`);
+            cards.push(
+                `<section class="home-card" id="${id}">\n<h2>${renderInline(title)}</h2>\n${renderMarkdown(intro, opts).html}\n` +
+                `<div class="home-features">\n${tiles.join("\n")}\n</div>\n</section>`,
+            );
         } else if (type === "playground") {
             const pg = splitPlayground(body, full, bodyLine);
             const intro = renderMarkdown(pg.intro, { file: full, firstLine: bodyLine, vars, include, wrapTables: "table-scroll" }).html;
@@ -277,7 +293,7 @@ export function buildHome(ctx, guide) {
         } else if (type === "card") {
             cards.push(`<section class="home-card" id="${id}">\n<h2>${renderInline(title)}</h2>\n${rendered}\n</section>`);
         } else {
-            throw new ContentError(`unknown card type "${type}" (hero | news | docs | card | playground)`, full, 1);
+            throw new ContentError(`unknown card type "${type}" (hero | news | docs | card | features | playground)`, full, 1);
         }
     }
     return { tocHtml: `<div class="home-toc-group">\n<h2>On this page</h2>\n${toc.join("\n")}\n</div>`, cardsHtml: cards.join("\n") };

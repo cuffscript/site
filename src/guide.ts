@@ -1,9 +1,11 @@
 import "./styles/base.css";
 import { initColorScheme } from "./ui/colorScheme";
 import { renderHeader } from "./ui/header";
+import { initSmoothScroll } from "./ui/smoothScroll";
 import { scheduleHighlightCuffBlocks } from "./editor/staticHighlight";
 
 initColorScheme();
+initSmoothScroll();
 renderHeader("guide");
 scheduleHighlightCuffBlocks();
 

@@ -1,6 +1,7 @@
 import "./styles/base.css";
 import { initColorScheme } from "./ui/colorScheme";
 import { renderHeader } from "./ui/header";
+import { initSmoothScroll } from "./ui/smoothScroll";
 import { icons } from "./ui/icons";
 import { scheduleHighlightCuffBlocks } from "./editor/staticHighlight";
 import { renderNewsFeed } from "./newsFeed";
@@ -8,6 +9,7 @@ import { buildShareUrl } from "./ide/state";
 import type { CuffEngine } from "./engine/engine";
 
 initColorScheme();
+initSmoothScroll();
 renderHeader("home");
 scheduleHighlightCuffBlocks();
 
