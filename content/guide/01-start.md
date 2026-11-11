@@ -5,7 +5,7 @@ home: false
 
 ## What is CuffScript {#intro}
 
-CuffScript is a small, interpreted programming language designed to be easy to read for people who are just starting out. Its code reads close to plain English: you `set` a variable `to` a value, you `change` it later, and every block of code opens with `do:` and closes with `end`. A few choices are deliberate, and you will meet them on every page of this guide:
+CuffScript is a small, interpreted programming language designed to be easy to read for people who are just starting out. Its code reads close to plain English: you declare a variable with its type (`number age = 25`), you give it a new value later with `=`, and every block of code opens with `do:` and closes with `end`. A few choices are deliberate, and you will meet them on every page of this guide:
 
 - **Counting starts at 1.** The first item of a list and the first character of a text are at position `1`, and a slice includes both of its ends.
 - **Patterns are readable.** Instead of regular-expression symbols such as `\d` or `\w`, you write bracket words like `[num]` and `[str]`.
@@ -20,7 +20,7 @@ A program is a text file of statements. The engine reads it from the top and run
 
 ```cuff
 print("Hello, CuffScript!")
-set str name to "Ann"
+str name = "Ann"
 print("Nice to meet you,", name)
 ```
 
@@ -29,7 +29,7 @@ Hello, CuffScript!
 Nice to meet you, Ann
 ```
 
-Three things are worth noticing already. Each statement sits on its own line. Text is written between quotes. And `set str name to "Ann"` creates a variable called `name` that holds a `str` (a piece of text); `print` can then use it like any other value.
+Three things are worth noticing already. Each statement sits on its own line. Text is written between quotes. And `str name = "Ann"` creates a variable called `name` that holds a `str` (a piece of text); `print` can then use it like any other value.
 
 ## The shape of a program {#shape}
 
@@ -41,10 +41,10 @@ func is_even(number n) do:
     return n % 2 is 0
 end
 
-set number total to 0
-loop repeat i to 1 ~ 5 do:
+number total = 0
+loop repeat number i = 1 ~ 5 do:
     if is_even(i) do:
-        change total to total + i
+        total = total + i
     end
 end
 print("The even numbers from 1 to 5 add up to", total)
@@ -54,7 +54,7 @@ print("The even numbers from 1 to 5 add up to", total)
 The even numbers from 1 to 5 add up to 6
 ```
 
-Read it like this. `func ... do:` starts a function and `end` finishes it. `set number total to 0` creates a variable, and `change total to total + i` gives it a new value. `loop repeat i to 1 ~ 5 do:` runs its body once for each whole number from 1 to 5, with `i` holding the current one. `if ... do:` runs its body only when the condition is true. Every block is indented one level deeper than the line that opens it, and every block ends with its own `end`. A line that starts with `note:` is a comment that the engine ignores.
+Read it like this. `func ... do:` starts a function and `end` finishes it. `number total = 0` creates a variable, and `total = total + i` gives it a new value. `loop repeat number i = 1 ~ 5 do:` runs its body once for each whole number from 1 to 5, with `i` holding the current one. `if ... do:` runs its body only when the condition is true. Every block is indented one level deeper than the line that opens it, and every block ends with its own `end`. A line that starts with `note:` is a comment that the engine ignores.
 
 ## Using this IDE {#ide-tour}
 

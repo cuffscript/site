@@ -5,14 +5,14 @@ summary: Declaring and calling functions, parameters, scope and global, pure and
 
 ## Defining functions {#functions}
 
-A function is a named block of code that you can run again and again. It starts with `func`, lists its parameters in parentheses, opens its body with `do:` and ends with `end`. There is no `set` in front. A short function fits on one line, as in `func twice(x) do: return x * 2 end`. A call is the function's name followed by arguments in parentheses, either as a statement on its own line or as part of an expression; a call never uses `do:`.
+A function is a named block of code that you can run again and again. It starts with `func`, lists its parameters in parentheses, opens its body with `do:` and ends with `end`. A short function fits on one line, as in `func twice(number x) do: return x * 2 end`. A call is the function's name followed by arguments in parentheses, either as a statement on its own line or as part of an expression; a call never uses `do:`.
 
 ```cuff
-func greet(name) do:
+func greet(any name) do:
     print(f"Hello, {name}!")
 end
 
-func fib(n) do:
+func fib(any n) do:
     if n <= 1 do:
         return n
     end
@@ -38,7 +38,7 @@ These are the rules for declaring and calling:
 
 ```cuff
 print(double(21))
-func double(x) do: return x * 2 end
+func double(any x) do: return x * 2 end
 ```
 
 ```output
@@ -47,9 +47,9 @@ func double(x) do: return x * 2 end
 
 ## Parameters and their types {#parameters}
 
-A parameter is written `name` or `type name`. The types are `number`, `str`, `boolean`, `list`, `map`, `match`, `pattern`, `object` and the name of a class, and typed and untyped parameters may be mixed in one list. A word on its own is always a name: `f(list)` has a parameter called `list`, and `f(list items)` has a parameter called `items` of type `list`.
+A parameter is written `[type] [name]`, and every parameter has a type. The types are `number`, `str`, `boolean`, `list`, `map`, `match`, `pattern`, `object`, `empty`, `any` and the name of a class; `any` takes a value of every type. A parameter is a variable of its function and keeps its type, so a later assignment to it is checked like any other.
 
-A typed parameter checks its argument when the function is called. A value of another type stops the run on the calling line with `ParameterTypeMismatch` ({{error.ParameterTypeMismatch}}). `empty` is accepted by every type.
+A parameter checks its argument when the function is called. A value of another type stops the run on the calling line with `ParameterTypeMismatch` ({{error.ParameterTypeMismatch}}). `empty` is accepted only by `any` and `empty`.
 
 ```cuff error=ParameterTypeMismatch
 func add_num(number n1, number n2) do:
@@ -60,10 +60,10 @@ add_num(1, 2)
 add_num("1", 2)   note: error at the call line, a text is not a number
 ```
 
-A parameter written `name to [value]` has a **default** and becomes optional. Parameters without a default come first. The default is worked out each time the function is called without that argument, in the scope of the function, so it can use the parameters before it, but not a global variable. A default is checked against the parameter's type when it is used, just like an argument.
+A parameter written `[type] [name] = [value]` has a **default** and becomes optional. Parameters without a default come first. The default is worked out each time the function is called without that argument, in the scope of the function, so it can use the parameters before it, but not a global variable. A default is checked against the parameter's type when it is used, just like an argument.
 
 ```cuff
-func greet(str name, str word to "Hello", str line to word + ", " + name + "!") do:
+func greet(str name, str word = "Hello", str line = word + ", " + name + "!") do:
     return line
 end
 print(greet("Ann"))
@@ -83,7 +83,7 @@ custom line
 
 ```cuff
 func nothing() do:
-    set number unused to 1
+    number unused = 1
 end
 print(nothing() is empty)
 ```
@@ -97,19 +97,19 @@ true
 A **scope** is the set of variables that a piece of code can see. CuffScript scopes by function:
 
 1. The **global scope** holds what the top level of a program declares.
-2. A **function scope** is created on every call. It holds the parameters, every name that the body declares with `set` (even inside an `if` or a loop), and the names that the body *bridges* with `global`.
+2. A **function scope** is created on every call. It holds the parameters, every name that the body declares (even inside an `if` or a loop), and the names that the body *bridges* with `global`.
 3. **`if` and loop bodies do not create a scope.** A name declared in one stays visible in the surrounding scope.
-4. An **`or_else` handler** runs in a scope of its own. A new name declared in it is local to the handler, and so is the name given by `or_else as`; an existing name can still be changed with `change`.
+4. An **`or_else` handler** runs in a scope of its own. A new name declared in it is local to the handler, and so is the name given by `or_else as`; an existing name can still be assigned.
 5. A **`with` block** has a scope of its own ([Classes and objects](#with)).
 
-The rule that surprises newcomers is that a function does **not** see global variables, not even constants, unless it asks for them. To read or change a variable of the main program, write `global [name]` first (several names can be listed, as in `global a, b`). From that statement to the end of that call, the name means the global variable, whether you read it, `change` it, or use `add`, `remove` and `change x[i]` on it. `global` is valid only inside a function. A name that you declare with `set` in the function is a new local that takes precedence over a bridge of the same name.
+The rule that surprises newcomers is that a function does **not** see global variables, not even constants, unless it asks for them. To read or change a variable of the main program, write `global [name]` first (several names can be listed, as in `global a, b`). From that statement to the end of that call, the name means the global variable, whether you read it, assign to it, or use `add`, `remove` and `x[i] = ...` on it. `global` is valid only inside a function. A name that you declare with `set` in the function is a new local that takes precedence over a bridge of the same name.
 
 ```cuff
-set number counter to 0
+number counter = 0
 
 func bump() do:
     global counter
-    change counter to counter + 1
+    counter = counter + 1
 end
 
 bump()
@@ -124,15 +124,15 @@ print(counter)
 Without the bridge, the name is simply not visible, and the error can be caught like any other:
 
 ```cuff
-set number counter to 0
+number counter = 0
 
 func peek() do:
     return counter
 end
 
-set number seen to peek() or_else do:
+number seen = peek() or_else do:
     print("counter is not visible here")
-    change seen to -1
+    seen = -1
 end
 print(seen)
 ```
@@ -153,20 +153,20 @@ Put `pure` in front of `func` to promise that a function does not touch the outs
 - A pure method of a class may read the fields of `self`, but changing a field raises `PureFunctionFieldWrite` ({{error.PureFunctionFieldWrite}}).
 
 ```cuff
-set number shared_state to 0
+number shared_state = 0
 
-pure func double(x) do:
+pure func double(any x) do:
     return x * 2
 end
 
-pure func quad(x) do:
+pure func quad(any x) do:
     return double(double(x))   note: a pure function calling a pure one is fine
 end
 print(quad(5))   note: 20
 
 func bump() do:
     global shared_state
-    change shared_state to shared_state + 1
+    shared_state = shared_state + 1
 end
 
 pure func broken() do:
@@ -198,7 +198,7 @@ end
 
 print("[sync] start")
 notify() note: queued, not run now
-set number score to await fetch_score() note: await runs it immediately
+number score = await fetch_score() note: await runs it immediately
 print(f"[sync] score = {score}")
 print("[sync] end")
 note: the queued notify() runs after this point.
@@ -220,7 +220,7 @@ A method needs the library of its function, loaded with `use DLC:...`, just as t
 ```cuff
 use DLC:string, DLC:list
 
-set str title to "  hello  "
+str title = "  hello  "
 print(title.trim().upper())
 print([3, 1, 2].sort(), "a,b".split(p","), [1, 2, 3].length())
 ```

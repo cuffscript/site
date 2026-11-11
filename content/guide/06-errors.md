@@ -8,8 +8,8 @@ summary: Reading error reports, or_else, error objects, fail, the error codes
 When something goes wrong, the engine stops the program and prints a report. A real report looks like this for the code below. The first line names the error and says where it happened. Under it comes the numbered source line, with `^` marks under the part of the line that the error is about (one `^` for a single character such as `/`, and one for each character of a name, a number or a text) and the message written beside the marks. Columns count characters, and the marks stay lined up even after wide or multi-byte characters such as CJK text or emoji. For some errors a `hint:` with a suggestion follows after a blank line.
 
 ```cuff error=DivisionByZero
-set number a to 10
-set number b to 0
+number a = 10
+number b = 0
 print(a / b)   note: there is no or_else, so the program stops here and prints the message below
 ```
 
@@ -27,13 +27,13 @@ The tag in brackets, here {{error.DivisionByZero}}, identifies the error: `E`, t
 Instead of try-catch, you attach an `or_else` handler after a statement that might fail. It goes on the same line as the last token of the statement, or after the `end` of a block. If the statement finishes normally, the handler is skipped. If it raises an error that can be caught, the handler runs and the program continues after it.
 
 ```cuff
-set number quantity to to_number("abc") or_else do:
+number quantity = to_number("abc") or_else do:
     print("Not a number; using 1.")
-    change quantity to 1
+    quantity = 1
 end
 print(f"quantity = {quantity}")
 
-loop repeat i to 1 ~ 3 do:
+loop repeat number i = 1 ~ 3 do:
     print(10 / (i - 2)) or_else do:
         print("skipped a division by zero")
     end
@@ -51,8 +51,8 @@ skipped a division by zero
 The exact rules are:
 
 1. Whatever the statement did before the error stays done: changes to variables, output already printed and calls already made are not undone.
-2. If the failed statement was a declaration, its name is bound to `empty` before the handler runs, so the handler can `change` it.
-3. The handler runs in a scope of its own: a new name declared in it is local to the handler, and an existing name can still be changed with `change`.
+2. If the failed statement was a declaration, its name is bound to `empty` before the handler runs, so the handler can assign it. The variable keeps its declared type, and an assignment is checked against it; if the handler does not assign it, it holds `empty`, the one case where a variable holds a value that its type does not accept.
+3. The handler runs in a scope of its own: a new name declared in it is local to the handler, and an existing name can still be assigned.
 4. An error raised **inside** the handler is not caught by the same `or_else`.
 5. `return` inside a handler returns from the enclosing function, and `stop` ends the enclosing loop.
 6. `or_else` guards the one statement it follows. To guard several statements, put them in a function and guard the call.
@@ -62,7 +62,7 @@ Remember that not finding something is usually *not* an error. A failed `find` o
 
 ## Getting the error: or_else as {#error-objects}
 
-`or_else as err do: ... end` gives the handler the error as a value, in the variable `err`. Every error that a handler can catch arrives as an object of the built-in class `Error`, with these fields:
+`or_else as Error err do: ... end` gives the handler the error as a value, in a variable that is declared right there with a type (`Error`, a class that extends `Error`, `object` or `any`). Every error that a handler can catch arrives as an object of the built-in class `Error`, with these fields:
 
 | Field | Type | Holds |
 |---|---|---|
@@ -72,10 +72,10 @@ Remember that not finding something is usually *not* an error. A failed `find` o
 | `hint` | `str` | The engine's suggestion, or an empty text |
 
 ```cuff
-set number n to to_number("abc") or_else as err do:
+number n = to_number("abc") or_else as Error err do:
     print("failed with", err.code, "at line", err.line)
     print(err.message)
-    change n to 0
+    n = 0
 end
 print(n)
 ```
@@ -95,7 +95,7 @@ func divide(number a, number b) do:
 end
 
 print(divide(6, 3))
-print(divide(1, 0)) or_else as err do:
+print(divide(1, 0)) or_else as Error err do:
     print(err.message)
 end
 ```
@@ -109,19 +109,19 @@ To tell kinds of errors apart, make a class that `extends Error` and test it wit
 
 ```cuff
 class ValidationError extends Error do:
-    set str field to ""
+    str field = ""
 end
 
 func check_age(number age) do:
     if age < 0 do:
-        set ValidationError e to ValidationError("age is negative")
-        change e.field to "age"
+        ValidationError e = ValidationError("age is negative")
+        e.field = "age"
         fail e
     end
     return age
 end
 
-check_age(-1) or_else as err do:
+check_age(-1) or_else as Error err do:
     if err isa ValidationError do:
         print(f"bad {err.field}: {err.message}")
     else do:

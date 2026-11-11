@@ -9,18 +9,18 @@ A **class** describes a kind of thing: the values it holds (its *fields*) and wh
 
 ```cuff
 class Player do:
-    set str name to "unknown"
-    set number x to 0
-    private set number steps to 0
+    str name = "unknown"
+    number x = 0
+    private number steps = 0
 
-    func init(str name, number x to 0) do:
-        change self.name to name
-        change self.x to x
+    func init(str name, number x = 0) do:
+        self.name = name
+        self.x = x
     end
 
     func walk(number distance) do:
-        change self.x to self.x + distance
-        change self.steps to self.steps + 1
+        self.x = self.x + distance
+        self.steps = self.steps + 1
     end
 
     func report() do:
@@ -28,7 +28,7 @@ class Player do:
     end
 end
 
-set Player ann to Player("Ann")
+Player ann = Player("Ann")
 ann.walk(3)
 print(ann.report())
 ```
@@ -48,9 +48,9 @@ A class is declared with `class Name do: ... end`. Its body holds field declarat
 
 ### Fields
 
-A field is declared with the words of a variable: `set [constant] type name to value`. The default value is worked out again for every object, so each object gets its own list or map. The default cannot use `self`. The set of fields is fixed: reading or writing a field that the class does not have raises `UnknownMember` ({{error.UnknownMember}}), and the message lists the fields it does have, which catches a misspelt name. The declared type is checked on the default value only; a later `change` does not check the type. A `constant` field is written in capitals, can be set while `init` runs, and cannot be changed afterwards.
+A field is declared like a variable: `[private] [constant] [type] [name] = [value]`. The default value is worked out again for every object, so each object gets its own list or map. The default cannot use `self`. The set of fields is fixed: reading or writing a field that the class does not have raises `UnknownMember` ({{error.UnknownMember}}), and the message lists the fields it does have, which catches a misspelt name. A field keeps its declared type, and every store into it is checked, not only the default. A `constant` field is written in capitals, can be set while `init` runs, and cannot be changed afterwards.
 
-A field is read and written with a dot, as in `player.name` and `change player.x to 5`. Fields are places like any other, so `add item to self.items` and `change self.grid[2][3] to 0` work on what a field holds.
+A field is read and written with a dot, as in `player.name` and `player.x = 5`. Fields are places like any other, so `add item to self.items` and `self.grid[2][3] = 0` work on what a field holds.
 
 ### Methods
 
@@ -70,14 +70,14 @@ An object is held by reference, like a list or a map: giving it a second name do
 
 ```cuff
 class Point do:
-    set number x to 0
-    set number y to 0
+    number x = 0
+    number y = 0
 end
 
-set Point a to Point()
-set Point b to a
-set Point c to a.copy()
-change b.x to 5
+Point a = Point()
+Point b = a
+Point c = a.copy()
+b.x = 5
 print(a.x, c.x, a is b, a is c)
 ```
 
@@ -91,8 +91,8 @@ print(a.x, c.x, a is b, a is c)
 
 ```cuff
 class Point do:
-    set number x to 0
-    set number y to 0
+    number x = 0
+    number y = 0
 
     func to_str() do:
         return f"({self.x}, {self.y})"
@@ -115,10 +115,10 @@ Put `private` in front of a field or a method to hide it outside the class that 
 
 ```cuff
 class Account do:
-    private set number balance to 0
+    private number balance = 0
 
     func deposit(number amount) do:
-        change self.balance to self.balance + amount
+        self.balance = self.balance + amount
     end
 
     func report() do:
@@ -126,7 +126,7 @@ class Account do:
     end
 end
 
-set Account a to Account()
+Account a = Account()
 a.deposit(40)
 print(a.report())
 ```
@@ -139,10 +139,10 @@ Writing `a.balance` outside the class raises `PrivateMemberAccess` ({{error.Priv
 
 ```cuff error=PrivateMemberAccess
 class Vault do:
-    private set number code to 1234
+    private number code = 1234
 end
 
-set Vault v to Vault()
+Vault v = Vault()
 print(v.code)   note: PrivateMemberAccess, code is private
 ```
 
@@ -157,10 +157,10 @@ print(v.code)   note: PrivateMemberAccess, code is private
 
 ```cuff
 class Animal do:
-    set str name to "animal"
+    str name = "animal"
 
     func init(str name) do:
-        change self.name to name
+        self.name = name
     end
 
     func speak() do:
@@ -169,11 +169,11 @@ class Animal do:
 end
 
 class Dog extends Animal do:
-    set number tricks to 0
+    number tricks = 0
 
-    func init(str name, number tricks to 0) do:
+    func init(str name, number tricks = 0) do:
         super.init(name)
-        change self.tricks to tricks
+        self.tricks = tricks
     end
 
     func speak() do:
@@ -182,7 +182,7 @@ class Dog extends Animal do:
     end
 end
 
-set Dog rex to Dog("Rex", 3)
+Dog rex = Dog("Rex", 3)
 rex.speak()
 print(rex.tricks)
 ```
@@ -195,7 +195,7 @@ Rex barks
 
 ### Types and `isa`
 
-A class name can be written wherever a type can: in `set Player p to ...`, in a parameter (`func f(Player p)`) and in a field. A value of a child class is accepted where its parent is wanted, so a parameter typed with the parent accepts every child. The type `object` accepts any object. `value isa ClassName` is true when `value` is an object of that class or of one of its descendants, and false for every other value. Because `isa` is a comparison, `!` negates it without parentheses. `type_of(object)` gives the name of its class as text.
+A class name can be written wherever a type can: in `Player p = ...`, in a parameter (`func f(Player p)`) and in a field. A value of a child class is accepted where its parent is wanted, so a parameter typed with the parent accepts every child. The type `object` accepts any object. `value isa ClassName` is true when `value` is an object of that class or of one of its descendants, and false for every other value. Because `isa` is a comparison, `!` negates it without parentheses. `type_of(object)` gives the name of its class as text.
 
 ```cuff
 class Animal do:
@@ -204,7 +204,7 @@ end
 class Dog extends Animal do:
 end
 
-set Animal pet to Dog()
+Animal pet = Dog()
 print(pet isa Animal, pet isa Dog, type_of(pet))
 print(1 isa Animal, Animal() isa Dog)
 ```
@@ -221,18 +221,18 @@ false false
 - A plain name is looked up in this order: a variable made inside the block, then a member of the object (a method when it is called, a field otherwise), then the rest of the program. Members come before outer names on purpose: what a name means is decided by the class and does not change when a variable of that name appears elsewhere.
 - `.name` always means a member of the object of the **innermost** `with`. Use it when a plain name could mean something else. It is a syntax error outside a `with` block.
 - `with` blocks can be nested. A name is looked for in the inner object first, then in the next one out.
-- A variable made with `set` inside the block is gone after its `end`. `return`, `stop`, `skip`, `await` and `or_else` work through a block as if it were not there.
+- A variable declared inside the block is gone after its `end`. `return`, `stop`, `skip`, `await` and `or_else` work through a block as if it were not there.
 - Inside a method, `self` is still the object the method was called on, not the object of a `with` inside it. A private member stays private: `with` does not open it.
 
 `player.walk(3)` and `with player do: walk(3) end` do the same thing.
 
 ```cuff
 class Robot do:
-    set str name to "R2"
-    set number y to 0
+    str name = "R2"
+    number y = 0
 
     func move(number steps) do:
-        change self.y to self.y + steps
+        self.y = self.y + steps
     end
 
     func status() do:
@@ -240,13 +240,13 @@ class Robot do:
     end
 end
 
-set Robot rover to Robot()
+Robot rover = Robot()
 
 with rover do:
     move(3)
     move(2)
     print(status())
-    change y to y + 10
+    y = y + 10
     print(.y)
 end
 ```
@@ -264,12 +264,12 @@ R2 at 5
 use DLC:json
 
 class Item do:
-    set str name to "pen"
-    private set number cost to 3
+    str name = "pen"
+    private number cost = 3
 end
 
 class Box extends Item do:
-    set list tags to ["new"]
+    list tags = ["new"]
 end
 
 print(to_json(Box()))

@@ -699,80 +699,6 @@ pre {
     line-height: 1.65;
 }
 
-/* "Try it now": an editable snippet with a Run button and its output. */
-.try-code,
-.try-output {
-    display: block;
-    width: 100%;
-    margin: 0;
-    padding: 14px 16px;
-    border: 1px solid var(--border);
-    background: var(--bg-elevated);
-    color: var(--text);
-    font-family: var(--font-mono);
-    font-size: 12.8px;
-    line-height: 1.65;
-}
-
-.try-code {
-    resize: vertical;
-    border-radius: var(--radius) var(--radius) 0 0;
-    tab-size: 4;
-    white-space: pre;
-    overflow-x: auto;
-}
-
-.try-code:focus-visible {
-    outline: 2px solid var(--accent);
-    outline-offset: -2px;
-}
-
-.try-bar {
-    display: flex;
-    flex-wrap: wrap;
-    align-items: center;
-    gap: 8px;
-    padding: 8px 10px;
-    border: 1px solid var(--border);
-    border-top: 0;
-    background: var(--bg);
-}
-
-.try-status {
-    margin-left: auto;
-    font-size: 12.5px;
-    color: var(--text-muted);
-}
-
-.home-card pre.try-output {
-    margin: 0;
-    border-top: 0;
-    border-radius: 0 0 var(--radius) var(--radius);
-    background: var(--bg-inset);
-    min-height: 3.2em;
-    white-space: pre-wrap;
-}
-
-.try-output::before {
-    content: "Output";
-    display: block;
-    margin-bottom: 4px;
-    font-family: var(--font-ui);
-    font-size: 11px;
-    font-weight: 600;
-    letter-spacing: 0.04em;
-    text-transform: uppercase;
-    color: var(--text-faint);
-}
-
-.try-output[data-sample]::before {
-    content: "Example output (press Run for the live result)";
-}
-
-.try-error {
-    color: var(--danger);
-}
-
 .home-card-hero {
     padding-top: 32px;
 }
@@ -928,7 +854,8 @@ pre {
     font-size: 12px;
 }
 
-.home-feature pre.code-output {
+.home-feature pre.code-output,
+.faq-answer pre.code-output {
     position: relative;
     margin-top: 4px;
     padding-top: 20px;
@@ -937,7 +864,8 @@ pre {
     color: var(--text-muted);
 }
 
-.home-feature pre.code-output::before {
+.home-feature pre.code-output::before,
+.faq-answer pre.code-output::before {
     content: "Output";
     position: absolute;
     top: 4px;
@@ -947,6 +875,76 @@ pre {
     font-weight: 700;
     letter-spacing: 0.04em;
     color: var(--text-faint);
+}
+
+/* "FAQ": questions that open on click. */
+.faq {
+    margin-top: 14px;
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    background: var(--bg);
+    overflow: hidden;
+}
+
+.faq-item + .faq-item {
+    border-top: 1px solid var(--border);
+}
+
+.faq-item summary {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    padding: 14px 18px;
+    font-size: 14.5px;
+    font-weight: 600;
+    cursor: pointer;
+    list-style: none;
+}
+
+.faq-item summary::-webkit-details-marker {
+    display: none;
+}
+
+.faq-item summary::after {
+    content: "+";
+    flex-shrink: 0;
+    font-size: 18px;
+    font-weight: 400;
+    color: var(--text-faint);
+}
+
+.faq-item[open] summary::after {
+    content: "\2013";
+}
+
+.faq-item summary:hover {
+    background: var(--bg-inset);
+}
+
+.faq-item summary:focus-visible {
+    outline: 2px solid var(--accent);
+    outline-offset: -2px;
+}
+
+.faq-answer {
+    padding: 0 18px 16px;
+}
+
+.faq-answer p {
+    margin: 0 0 10px;
+    font-size: 14px;
+    line-height: 1.7;
+}
+
+.faq-answer p:last-child {
+    margin-bottom: 0;
+}
+
+.faq-answer pre {
+    margin: 8px 0 0;
+    padding: 10px 12px;
+    font-size: 12px;
 }
 
 .home-docs-grid {

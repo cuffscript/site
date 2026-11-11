@@ -5,7 +5,7 @@ summary: Values and types, variables and constants, text, operators, indexing, c
 
 ## Lines, blocks and indentation {#blocks}
 
-A statement is written on one line. The only exception is inside brackets: the elements of a list or map and the arguments of a call may continue over several lines between the opening and the closing bracket, and a list or map may end with a trailing comma. A line cannot end in the middle of an expression, so `set number x to 1 +` is a syntax error.
+A statement is written on one line. The only exception is inside brackets: the elements of a list or map and the arguments of a call may continue over several lines between the opening and the closing bracket, and a list or map may end with a trailing comma. A line cannot end in the middle of an expression, so `number x = 1 +` is a syntax error.
 
 A statement that owns a block (`if`, `loop`, `func`, `class`, `with` and the `or_else` handler) ends its header line with `do:`, holds a body of further statements, and is closed by its own `end`. A missing or surplus `end` is a syntax error. Write each body line one level deeper than its header, and every line of the body at the same level. You can indent with spaces or tabs (a tab counts as four columns), but keep to one style within a file. The engine enforces this: a body written on its own lines that is not indented is a syntax error, and so is a line indented deeper than the rest of its body ("unexpected indentation") or one that returns to a level that no enclosing block uses ("inconsistent indentation"). `end` still closes the block; indentation alone does not. An empty body needs no indentation, because `end` (or `else`) may follow the `do:` line directly. Blank lines are ignored.
 
@@ -18,9 +18,9 @@ end
 When a block's body and its `end` fit on the header's line, no indentation is needed. This one-line form is convenient for short bodies:
 
 ```cuff
-set number x to 10
+number x = 10
 if x is 10 do: print("ten") end
-func twice(n) do: return n * 2 end
+func twice(any n) do: return n * 2 end
 print(twice(x))
 ```
 
@@ -33,9 +33,9 @@ ten
 
 A name (of a variable, a function, a parameter, a class or a field) starts with a letter or `_` and continues with letters, digits and `_`. Letters are ASCII only, and names are case-sensitive, so `score` and `Score` are different names. A class name must start with a capital letter. Variables and functions live in separate name spaces, so a variable and a function may have the same name.
 
-{{engine.keywordCount}} words are reserved: {{engine.keywords}}. They have a meaning in the language and cannot be used as names, with six exceptions: `add`, `to`, `in`, `global`, `not` and `from` can still name a variable, a function, a parameter or a loop variable. The words `as` (after `or_else`) and `init` (the constructor method of a class) are not reserved; they mean something only in their own place.
+{{engine.keywordCount}} words are reserved: {{engine.keywords}}. They have a meaning in the language, and none of them can be used as the name of a variable, a function, a parameter, a field or a loop variable; the engine reports it with a hint. The words `as` (after `or_else`) and `init` (the constructor method of a class) are not reserved; they mean something only in their own place. `set` and `change` are not keywords either, so they are ordinary names.
 
-Type names are not reserved either. A type name is read as a type only where a type may stand, which is after `set`, before a parameter name and in a field declaration. Everywhere else it is an ordinary name, so `set list list to [1, 2]` declares a list that is called `list`. The same goes for the names of built-in functions such as `find` or `count`: a variable may be called `count`, and a function that you declare with the name of a built-in replaces it.
+Type names are not reserved either. A type name is read as a type only where a type may stand, which is at the start of a declaration, before a parameter name, in a field declaration, in `loop repeat` and `loop each`, and after `or_else as`. Everywhere else it is an ordinary name, so `list list = [1, 2]` declares a list that is called `list`. The same goes for the names of built-in functions such as `find` or `count`: a variable may be called `count`, and a function that you declare with the name of a built-in replaces it.
 
 ## Values and types {#types}
 
@@ -51,6 +51,7 @@ Every value has a type. These are the types of the language:
 | `pattern` | A pattern ([Pattern matching](#patterns)) | `p"[num]+"` | never |
 | `object` or a class name | An object made from a class ([Classes and objects](#classes)) | `Player("Ann")` | never |
 | `empty` | No value | `empty` | always |
+| `any` | Any value (the type of a variable or parameter that accepts every type) | `any found = empty` | its value decides |
 
 The last column is used when a value stands where a condition is expected; see [Truthiness](#truthiness) below. There is also a `match` type, the result of a successful pattern match, which is covered in [Pattern matching](#pattern-commands).
 
@@ -61,8 +62,8 @@ The last column is used when a value stands where a condition is expected; see [
 **Lists and maps.** A list holds any mix of values, including other lists. A map holds values under string keys, and any other kind of key is an error. A map remembers the order in which its keys were added.
 
 ```cuff
-set list mixed to [1, "two", [3, 4]]
-set map profile to {
+list mixed = [1, "two", [3, 4]]
+map profile = {
     "name": "Ann",
     "tags": ["a", "b"],
 }
@@ -77,21 +78,21 @@ print(profile["tags"][2])
 b
 ```
 
-**Empty.** `empty` means "no value". It is what a function gives back when it returns nothing, and what a search such as `find` gives back when it finds nothing. It is always false when used as a condition.
+**Empty.** `empty` means "no value". It is what a function gives back when it returns nothing, and what a search such as `find` gives back when it finds nothing. It is always false when used as a condition. As a type, `empty` has exactly one value, `empty`; to keep a value that may be `empty` (the result of `find`, say) declare the variable `any`.
 
 **Lists, maps and objects are shared, not copied.** If you give a list a second name, both names refer to the same list, so a change made through one is seen through the other. Numbers, text, booleans and `empty` behave as plain values. Use `copy(x)` to make an independent copy ([Control flow](#collections) shows an example).
 
 ## Variables {#variables}
 
-A variable is created with `set [type] [name] to [value]`, and its value is replaced later with `change [name] to [value]`. The type is required, because CuffScript does not guess it, and the word that assigns is `to`; a plain `=` is a syntax error.
+A variable is created with a **declaration**, `[type] [name] = [value]`, and its value is replaced later with an **assignment**, `[name] = [value]`. The type is required, because CuffScript does not guess it, and `x = 5` on its own is always an assignment to a variable that already exists.
 
 ```cuff
-set number age to 25
-set str name to "Ann"
-set boolean active to true
-set empty nothing to empty
+number age = 25
+str name = "Ann"
+boolean active = true
+any nothing = empty
 
-change age to 26
+age = 26
 print(name, age, active, nothing)
 ```
 
@@ -99,24 +100,31 @@ print(name, age, active, nothing)
 Ann 26 true empty
 ```
 
-A few rules complete the picture:
+These rules complete the picture:
 
-- The value must have the declared type, otherwise the run stops with `DeclarationTypeMismatch` ({{error.DeclarationTypeMismatch}}). The exception is `empty`, which every type accepts, so the `empty` that a failed search produces can be stored and tested.
-- The type is checked only at the declaration. A later `change` may store a value of any type.
-- `change` needs a variable that already exists; otherwise the error is `UndefinedVariable` ({{error.UndefinedVariable}}).
-- Declaring a name again in the same scope replaces the earlier variable.
+- The type is one of `number`, `str`, `boolean`, `list`, `map`, `match`, `pattern`, `object`, `empty`, `any` or the name of a class.
+- A variable **keeps the type it was declared with**, and every store into it is checked. A value of another type stops the run with `DeclarationTypeMismatch` ({{error.DeclarationTypeMismatch}}). A class accepts its own objects and those of its children, `object` accepts any object, and `any` accepts every value, so a variable that has to hold values of different types is declared `any`.
+- `empty` is a type of its own, and its only value is `empty`. The `empty` that a failed `find` or `match` produces is therefore kept in an `any` variable and tested there with `is empty`.
+- An assignment needs a variable that already exists; otherwise the error is `UndefinedVariable` ({{error.UndefinedVariable}}).
+- A name is declared **once** in a function (or once at the top level of a program). Declaring it again, in the same block, in a block inside it, or as a parameter or loop variable of the same name, is a syntax error (`DuplicateDeclaration` ({{error.DuplicateDeclaration}})) that is found before the program runs: assign to the first variable instead. A name declared inside a block is free again once that block has ended, so two blocks side by side may use the same name.
 
 ```cuff error=DeclarationTypeMismatch
-set number age to "twenty"   note: the value is a str, not a number
+number age = 25
+age = "twenty"   note: the variable is a number, the value is a str
+```
+
+```cuff error=DuplicateDeclaration
+number total = 1
+number total = 2   note: declared twice; write total = 2 to assign
 ```
 
 ## Constants {#constants}
 
-A constant is declared with `set constant [type] [name] to [value]`. Its name must be written entirely in capital letters, digits and underscores (`InvalidConstantName` ({{error.InvalidConstantName}}) otherwise), and trying to `change` it later is an error (`ConstantReassignment` ({{error.ConstantReassignment}})). These checks happen when the statement runs.
+A constant is declared with `constant [type] [name] = [value]`. Its name must be written entirely in capital letters, digits and underscores (`InvalidConstantName` ({{error.InvalidConstantName}}) otherwise), and assigning to it later is an error (`ConstantReassignment` ({{error.ConstantReassignment}})). These checks happen when the statement runs.
 
 ```cuff
-set constant number MAX_RETRIES to 3
-set constant str API_URL to "https://cufflang.dev"
+constant number MAX_RETRIES = 3
+constant str API_URL = "https://cufflang.dev"
 print(MAX_RETRIES, API_URL)
 ```
 
@@ -125,21 +133,21 @@ print(MAX_RETRIES, API_URL)
 ```
 
 ```cuff error=InvalidConstantName
-set constant number max_users to 100   note: a constant's name must be all capitals
+constant number max_users = 100   note: a constant's name must be all capitals
 ```
 
-A constant can hold any type, and none of them accepts `change` on the constant's own name. What else is protected depends on the type. A number, a text and a boolean have nothing else to protect. A **constant list** is read-only through every name: `add`, `remove` and index assignment are all errors, and the list stays read-only when you assign it to another variable or pass it to a function. The value is copied when the constant is created, so freezing it never freezes a list that another variable already refers to. The protection is *shallow*: a list or map stored inside a constant list can still be changed.
+A constant can hold any type, and none of them accepts an assignment to the constant's own name. What else is protected depends on the type. A number, a text and a boolean have nothing else to protect. A **constant list** is read-only through every name: `add`, `remove` and index assignment are all errors, and the list stays read-only when you assign it to another variable or pass it to a function. The value is copied when the constant is created, so freezing it never freezes a list that another variable already refers to. The protection is *shallow*: a list or map stored inside a constant list can still be changed.
 
 ```cuff error=ConstantReassignment
-set constant list PRIMES to [2, 3, 5, 7, 11]
+constant list PRIMES = [2, 3, 5, 7, 11]
 
 add 13 to PRIMES          note: error, a frozen list can't be added to
-change PRIMES[1] to 0     note: also an error
+PRIMES[1] = 0     note: also an error
 ```
 
 ```cuff
-set list source to [1, 2, 3]
-set constant list SNAPSHOT to source   note: a frozen copy of source
+list source = [1, 2, 3]
+constant list SNAPSHOT = source   note: a frozen copy of source
 add 99 to source                       note: allowed, SNAPSHOT is still [1, 2, 3]
 print(SNAPSHOT, source)
 ```
@@ -148,12 +156,12 @@ print(SNAPSHOT, source)
 [1, 2, 3] [1, 2, 3, 99]
 ```
 
-A **constant map** refuses `change CONFIG["key"] to ...` and `remove "key" from CONFIG`, but the map itself is not frozen: another variable that was given the same map can still change it, and the constant then shows that change. Copy it with `copy(CONFIG)` when you need a map that is independent of the constant.
+A **constant map** refuses `CONFIG["key"] = ...` and `remove "key" from CONFIG`, but the map itself is not frozen: another variable that was given the same map can still change it, and the constant then shows that change. Copy it with `copy(CONFIG)` when you need a map that is independent of the constant.
 
 ```cuff error=ConstantReassignment
-set constant map SETTINGS to {"volume": 5}
+constant map SETTINGS = {"volume": 5}
 
-change SETTINGS["volume"] to 9    note: error, a constant map can't be changed through its name
+SETTINGS["volume"] = 9    note: error, a constant map can't be changed through its name
 ```
 
 ## Truthiness {#truthiness}
@@ -179,8 +187,8 @@ an empty list is falsy
 The operator `+` joins two texts. An **f-string** puts values into text: write `f"..."` and put an expression between braces, and its display form is inserted. To write a brace itself, double it (`{{` and `}}`). Inside the braces, write text with single quotes, because a double quote would end the f-string. An error inside the braces is reported at the line of the f-string.
 
 ```cuff
-set str city to "Seoul"
-set map res to {"year": 2026}
+str city = "Seoul"
+map res = {"year": 2026}
 print("Hello, " + city + "!")
 print(f"{city} has {1 + 1} syllables and the year is {res['year']}")
 print(f"Braces: {{like this}}")
@@ -231,7 +239,7 @@ true false true true
 **Logic.** `and` and `or` combine conditions, and `!` reverses one. The operands may be of any type (see [Truthiness](#truthiness)), and the result is always a `boolean`, never one of the operands. The right operand is evaluated only when the left one does not already decide the result: `and` stops at a false left operand and `or` at a true one. That is why `x is not 0 and 10 / x > 1` never divides by zero.
 
 ```cuff
-set number age to 30
+number age = 30
 if age >= 18 and age < 65 do:
     print("working age")
 end
@@ -266,13 +274,13 @@ Parentheses group anything. Because `**` binds tighter than a unary minus on its
 The first position of a list or a text is **`1`**, and position `0` does not exist. A negative position counts from the end, so `-1` is the last one. A slice `x[i~j]` takes positions `i` through `j`, both included, and its bounds may be negative too; if `i` comes after `j` the result is empty. A map is indexed by a string key.
 
 ```cuff
-set list colors to ["red", "green", "blue", "yellow"]
+list colors = ["red", "green", "blue", "yellow"]
 print(colors[1], colors[-1], colors[2~3], colors[-2~-1])
 
-set str word to "héllo"
+str word = "héllo"
 print(word[2], word[2~4], word[-1])
 
-set map ages to {"ann": 31}
+map ages = {"ann": 31}
 print(ages["ann"])
 ```
 
@@ -284,9 +292,9 @@ red yellow ["green", "blue"] ["blue", "yellow"]
 
 Some details to remember:
 
-- Position `0` raises `ZeroIndexAccess` ({{error.ZeroIndexAccess}}), and a position outside the sequence raises `IndexOutOfRange` ({{error.IndexOutOfRange}}). A key that a map does not have raises `KeyNotFound` ({{error.KeyNotFound}}); assigning to a new key with `change` creates it.
+- Position `0` raises `ZeroIndexAccess` ({{error.ZeroIndexAccess}}), and a position outside the sequence raises `IndexOutOfRange` ({{error.IndexOutOfRange}}). A key that a map does not have raises `KeyNotFound` ({{error.KeyNotFound}}); assigning to a new key creates it.
 - A position must be a whole number (`FractionalIndex` ({{error.FractionalIndex}}) otherwise).
-- A text is indexed by character, not by byte, so `"héllo"[2]` is `"é"`. A text cannot be changed in place: `change word[1] to "x"` is an error. Build a new text with `+` and a slice instead.
+- A text is indexed by character, not by byte, so `"héllo"[2]` is `"é"`. A text cannot be changed in place: `word[1] = "x"` is an error. Build a new text with `+` and a slice instead.
 
 ## Comments and the colon rule {#colon-comments}
 
@@ -294,7 +302,7 @@ A single-line comment starts with `note:` and runs to the end of the line, eithe
 
 ```cuff
 note: a single-line comment
-set number x to 10
+number x = 10
 if x is 10 do: print("Passed") end   note: a trailing comment on the same line works too
 
 note:

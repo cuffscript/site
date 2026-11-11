@@ -10,7 +10,7 @@ A **pattern** describes text by its shape instead of by exact characters: "three
 Where other languages use regular-expression symbols such as `\d`, `\w`, `^` and `$`, CuffScript uses readable bracket words: `[num]` is one digit, `[let]` is one English letter, `[sp]` is a space. Those words are the *tokens* of the pattern language, and this page introduces them in groups. A pattern is written as a **pattern literal**:
 
 ```cuff
-set str phone to "010-1234-5678"
+str phone = "010-1234-5678"
 if phone matches p"[num]3-[num]4-[num]4" do:
     print("Valid number")
 end
@@ -28,12 +28,12 @@ A pattern literal is `p"..."`. Three facts about it:
 - **It is checked when the program is read.** A mistake in a pattern is reported before anything runs.
 - **Flags follow the closing quote**, with no space: `i` ignores upper and lower case, and `m` makes `[start]` and `[end]` work on every line. They can be combined as `im`. See [Flags](#pattern-flags).
 
-A pattern is a value of the type `pattern`. You can keep it in a variable (`set pattern digits to p"[num]+"`), pass it to a function, and compare two of them with `is` (equal when their text and flags are the same). To build a pattern while the program is running, use `pattern(text)` or `pattern(text, flags)`; a mistake in the text is then raised at that call.
+A pattern is a value of the type `pattern`. You can keep it in a variable (`pattern digits = p"[num]+"`), pass it to a function, and compare two of them with `is` (equal when their text and flags are the same). To build a pattern while the program is running, use `pattern(text)` or `pattern(text, flags)`; a mistake in the text is then raised at that call.
 
 **`matches` and the whole text.** `text matches pattern` is true only when the **whole** text fits the pattern. The left side must be a text and the right side a pattern. `matches` is a comparison, so `!` negates it without parentheses. To look for a pattern *inside* a text, use the functions in [Using patterns](#pattern-commands). Note that `is` never reads a text as a pattern: `code is "[num]4"` compares the text with those exact characters.
 
 ```cuff
-set str answer to "YES"
+str answer = "YES"
 print(answer is "yes", answer matches p"yes", answer matches p"yes"i)
 print("a1" matches p"[let][num]", "a12" matches p"[let][num]", !"a12" matches p"[let][num]")
 ```
@@ -59,7 +59,7 @@ true false true
 `[let]`, `[str]` and `[word]` mean **English** letters only, so they do not match accented letters or Hangul. `[any]` does match them, and patterns work per character, not per byte, so one accented letter or one Hangul syllable counts as one.
 
 ```cuff
-set str word to "héllo"
+str word = "héllo"
 print(word matches p"[let]+", word matches p"[any]5")
 ```
 
@@ -118,7 +118,7 @@ true false
 **Greedy and lazy.** The repeats `+`, `*` and `~` are *greedy*: they take as much text as they can. Adding `?` right after one makes it *lazy*, so it takes as little as possible. This matters when you search inside text:
 
 ```cuff
-set str html to "<b>one</b> and <b>two</b>"
+str html = "<b>one</b> and <b>two</b>"
 
 note: greedy: from the first <b> to the very last </b>
 print(find(html, p"\<b\>[any]+\</b\>"))
@@ -151,12 +151,12 @@ true false
 These tokens match a *position* and consume no characters. `[start]` is the very beginning of the text, `[end]` is the very end, and `[edge]` is a word boundary: the point between a word and what is not a word (a space, punctuation, or the start or end of the text). They matter when you search inside a text with `find` and similar functions, because `matches` already needs the whole text to fit. `[edge]` stops a short word from matching inside a longer one.
 
 ```cuff
-set str message to "NOTICE: maintenance is starting."
+str message = "NOTICE: maintenance is starting."
 print(find(message, p"[start]NOTICE:"))
 print(find(message, p"[start]maintenance"))
 print(find(message, p"starting\.[end]"))
 
-set str sentence to "The category of catalog is books"
+str sentence = "The category of catalog is books"
 print(find_all(sentence, p"[edge]cat[edge]"))
 print(find_all("a cat sat", p"[edge]cat[edge]"))
 ```
@@ -221,15 +221,15 @@ Seven built-in functions work on text and patterns. They need no `use`, and the 
 Matches are found from left to right and never overlap. The replacement is used as plain text, and `split` keeps empty pieces.
 
 ```cuff
-set str article to "Ticket numbers: T-123, T-456"
-set list tickets to find_all(article, p"T-[num]3")
+str article = "Ticket numbers: T-123, T-456"
+list tickets = find_all(article, p"T-[num]3")
 print(tickets[1])
 print(find(article, p"T-[num]3"), count(article, p"T-[num]3"), count("abc", p"[num]"))
 
 print(replace("a-b-c", p"-", "+"), replace_all("a-b-c", p"-", "+"))
 print(replace_all("too   many    spaces", p"[sp]+", " "))
 
-set str phone_log to "Call log: 010-1234-5678"
+str phone_log = "Call log: 010-1234-5678"
 print(replace(phone_log, p"[num]4-[num]4", "****-****"))
 
 print(split("apple, banana,cherry", p",[sp]*"))
@@ -246,7 +246,7 @@ Call log: 010-****-****
 ["a", "", "b"]
 ```
 
-Use `find` when you want the text that matched, declared as a `str`, and use `match` when you want the pieces inside it.
+Use `find` when you want the text that matched, and use `match` when you want the pieces inside it.
 
 ## Captures {#pattern-captures}
 
@@ -255,13 +255,13 @@ A **capture** is the part of the text that a group matched. `match` returns a `m
 Instead of numbers you can give a capture a **name** with `<name:...>` and look it up by key, like a map. Named and numbered captures are counted separately: a pattern with only named captures has no `result[1]`.
 
 ```cuff
-set match result to match("order SN-2026-998 shipped", p"SN-([num]4)-([num]+)")
+any result = match("order SN-2026-998 shipped", p"SN-([num]4)-([num]+)")
 if result is not empty do:
     print(result[1], result[2], result[-1])
 end
 print(match("nothing here", p"SN-([num]4)"))
 
-set match res to match("2026-12-25", p"<year:[num]4>-<month:[num]2>-<day:[num]2>")
+any res = match("2026-12-25", p"<year:[num]4>-<month:[num]2>-<day:[num]2>")
 print(f"{res['day']}/{res['month']}/{res['year']}")
 ```
 
@@ -271,7 +271,7 @@ empty
 25/12/2026
 ```
 
-A `match` value is shown as `<match "text">`, where `text` is the whole text that matched, and `type_of` names it `match`. Because a failed `match` gives `empty` rather than a `match`, always test with `is empty` before using the captures. A `match` cannot be passed to `length` or `to_json`; copy the captures you need into a list or map first.
+A `match` value is shown as `<match "text">`, where `text` is the whole text that matched, and `type_of` names it `match`. Because a failed `match` gives `empty` rather than a `match`, always test with `is empty` before using the captures, and keep the result in an `any` variable, because a variable declared `match` cannot hold `empty`. A `match` cannot be passed to `length` or `to_json`; copy the captures you need into a list or map first.
 
 ## Flags {#pattern-flags}
 
@@ -283,14 +283,14 @@ A `match` value is shown as `<match "text">`, where `text` is the whole text tha
 A flag belongs to the pattern, so it applies wherever the pattern is used. Each flag may appear once, and a letter that is not a flag is a syntax error. There is no flag for "every match": that is what `find_all` and `replace_all` do.
 
 ```cuff
-set str logs to "Error:12 ok ERROR:7"
+str logs = "Error:12 ok ERROR:7"
 print(find_all(logs, p"error:[num]+"i))
 
-set str text to "first\nsecond"
+str text = "first\nsecond"
 print(find_all(text, p"[start][let]+"m))
 print(find_all(text, p"[start][let]+"))
 
-set str word to "cat"
+str word = "cat"
 print("Cat" matches pattern(word, "i"), find_all("a CAT sat", pattern("[edge]" + word + "[edge]", "i")))
 ```
 

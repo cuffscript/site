@@ -64,7 +64,7 @@ test("catches a web policy that blocks a library that does not exist", { skip },
 });
 
 test("catches an intentionally-erroring snippet that stopped erroring", { skip }, () => {
-    const dir = brokenCopy((d) => patch(d, "content/guide/06-errors.md", (s) => s.replace("```cuff error=DivisionByZero\nset number a to 10\nset number b to 0\nprint(a / b)", "```cuff error=DivisionByZero\nset number a to 10\nset number b to 5\nprint(a / b)")));
+    const dir = brokenCopy((d) => patch(d, "content/guide/06-errors.md", (s) => s.replace("```cuff error=DivisionByZero\nnumber a = 10\nnumber b = 0\nprint(a / b)", "```cuff error=DivisionByZero\nnumber a = 10\nnumber b = 5\nprint(a / b)")));
     const r = check(dir);
     assert.equal(r.code, 1);
     assert.match(r.text, /expected E4-006 but the snippet ran successfully/);

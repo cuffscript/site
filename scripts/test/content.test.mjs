@@ -154,17 +154,16 @@ test("{{error.Name}} prints the engine's own tag, and the guide uses it instead 
     }
 });
 
-test("home: the playground card holds the starting code and a verified sample output", () => {
-    assert.match(home.cardsHtml, /<textarea class="try-code" id="try-code" rows="\d+"[^>]*>note: Edit me/);
-    assert.match(home.cardsHtml, /<pre class="try-output" id="try-output" data-sample[^>]*>Ada looks like a proper name/);
-    for (const id of ["try-run", "try-run-label", "try-status", "try-ide", "icon-try-play"]) {
-        assert.ok(home.cardsHtml.includes(`id="${id}"`), `home.ts looks for #${id}`);
-    }
-});
-
 test("home: the highlights card is a grid of tiles, each with a title", () => {
     const tiles = [...home.cardsHtml.matchAll(/<article class="home-feature">\n<h3>([^<]+)<\/h3>/g)].map((m) => m[1]);
     assert.ok(tiles.length >= 3, "several tiles");
     assert.ok(tiles.includes("Counting starts at 1"));
     assert.ok(home.cardsHtml.includes('<div class="home-features">'));
+});
+
+test("home: the FAQ card is a list of questions that open on click, and the playground card is gone", () => {
+    const questions = [...home.cardsHtml.matchAll(/<details class="faq-item">\n<summary>([^<]+)<\/summary>/g)].map((m) => m[1]);
+    assert.ok(questions.length >= 8, "many questions");
+    assert.ok(questions.includes("Why does counting start at 1?"));
+    assert.ok(!home.cardsHtml.includes("try-code"));
 });
