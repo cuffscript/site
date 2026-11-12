@@ -20,7 +20,7 @@ When a block's body and its `end` fit on the header's line, no indentation is ne
 ```cuff
 number x = 10
 if x is 10 do: print("ten") end
-func twice(any n) do: return n * 2 end
+func twice(number n) do: return n * 2 end
 print(twice(x))
 ```
 
@@ -124,12 +124,12 @@ A constant is declared with `constant [type] [name] = [value]`. Its name must be
 
 ```cuff
 constant number MAX_RETRIES = 3
-constant str API_URL = "https://cufflang.dev"
+constant str API_URL = "https://cuffscript.pages.dev"
 print(MAX_RETRIES, API_URL)
 ```
 
 ```output
-3 https://cufflang.dev
+3 https://cuffscript.pages.dev
 ```
 
 ```cuff error=InvalidConstantName

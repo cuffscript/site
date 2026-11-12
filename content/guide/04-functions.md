@@ -8,11 +8,11 @@ summary: Declaring and calling functions, parameters, scope and global, pure and
 A function is a named block of code that you can run again and again. It starts with `func`, lists its parameters in parentheses, opens its body with `do:` and ends with `end`. A short function fits on one line, as in `func twice(number x) do: return x * 2 end`. A call is the function's name followed by arguments in parentheses, either as a statement on its own line or as part of an expression; a call never uses `do:`.
 
 ```cuff
-func greet(any name) do:
+func greet(str name) do:
     print(f"Hello, {name}!")
 end
 
-func fib(any n) do:
+func fib(number n) do:
     if n <= 1 do:
         return n
     end
@@ -38,7 +38,7 @@ These are the rules for declaring and calling:
 
 ```cuff
 print(double(21))
-func double(any x) do: return x * 2 end
+func double(number x) do: return x * 2 end
 ```
 
 ```output
@@ -155,11 +155,11 @@ Put `pure` in front of `func` to promise that a function does not touch the outs
 ```cuff
 number shared_state = 0
 
-pure func double(any x) do:
+pure func double(number x) do:
     return x * 2
 end
 
-pure func quad(any x) do:
+pure func quad(number x) do:
     return double(double(x))   note: a pure function calling a pure one is fine
 end
 print(quad(5))   note: 20

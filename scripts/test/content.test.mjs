@@ -105,7 +105,7 @@ test("home: the docs grid is derived from the guide and every link lands on a re
 test("home: counts shown in the text come from the real data, not from memory", () => {
     const tour = home.cardsHtml;
     assert.ok(tour.includes(`${Object.keys(ctx.meta.dlc).length} libraries`), "DLC count");
-    assert.ok(tour.includes(Object.keys(ctx.meta.dlc).join("/")), "DLC list");
+    assert.ok(tour.includes(Object.keys(ctx.meta.dlc).join(", ")), "DLC list");
     const exampleCount = fs.readdirSync(path.join(root, "src/examples")).filter((n) => /^\d+_/.test(n)).length;
     assert.ok(tour.includes(`${exampleCount} ready-made examples`), "example count");
 });

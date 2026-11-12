@@ -10,7 +10,7 @@ A long program is easier to read when it is split into files. `use name from ./f
 ```cuff
 note: lib/greetings.cuff
 constant str DEFAULT_GREETING = "Hello"
-func greet(any name) do:
+func greet(str name) do:
     global DEFAULT_GREETING
     return DEFAULT_GREETING + ", " + name + "!"
 end

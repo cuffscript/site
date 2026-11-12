@@ -85,7 +85,7 @@ print(1 + 2)
 
 | 이름 | 값 |
 |---|---|
-| `{{engine.dlcCount}}` / `{{engine.dlcNames}}` | 내장 라이브러리 개수 / 이름 목록 (`math/string/...`) |
+| `{{engine.dlcCount}}` / `{{engine.dlcNames}}` | 내장 라이브러리 개수 / 이름 목록 (`math, string, ...`) |
 | `{{engine.functionCount}}` / `{{engine.errorCodeCount}}` | 내장 함수 / 에러 코드 개수 |
 | `{{error.에러이름}}` | 엔진이 출력하는 에러 코드 (예: `{{error.DivisionByZero}}` → 코드). 글에 번호를 직접 적지 마세요. |
 | `{{examples.count}}` | IDE 예제 개수 |

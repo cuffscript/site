@@ -59,7 +59,7 @@ Yes. The engine is a library: use the `cuffscript-wasm` package from JavaScript 
 
 ### Is it safe to run a program I did not write?
 
-CuffScript is built so that a program can do only what its host allows. File access is confined to one folder and cannot escape it with `..` or links, network requests to local and private addresses are blocked, and an execution budget stops runaway loops. In the browser IDE the file library is blocked and the browser stops raw network access. Treat these as protections and not as a guarantee, and read the project's security policy before you rely on them for untrusted code.
+CuffScript is built so that a program can do only what its host allows. File access is confined to one folder and cannot escape it with `..` or links, network requests to local and private addresses are blocked, and an execution budget stops runaway loops. In the browser IDE the file library is blocked and the browser stops raw network access. Treat these as protections and not as a guarantee, and read the project's [security policy]({{site.blobUrl}}/SECURITY.md) before you rely on them for untrusted code.
 
 ### Is it free to use?
 

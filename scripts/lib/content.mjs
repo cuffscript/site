@@ -84,7 +84,7 @@ export function buildVars(ctx, extra = {}) {
         "site.changelogUrl": urls.changelogUrl,
         "engine.version": ctx.meta.engineVersion,
         "engine.dlcCount": names.length,
-        "engine.dlcNames": names.join("/"),
+        "engine.dlcNames": names.join(", "),
         // every reserved word, as inline code (the literals true/false are reserved too)
         "engine.keywords": [...ctx.meta.keywords, ...ctx.meta.literals.filter((w) => w !== "empty")].map((w) => `\`${w}\``).join(", "),
         "engine.keywordCount": ctx.meta.keywords.length + ctx.meta.literals.filter((w) => w !== "empty").length,

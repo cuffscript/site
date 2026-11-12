@@ -4,7 +4,7 @@ title: CuffScript
 slogan: “As easy as a game, as light as a feather, and as fast as a flash.”
 ---
 
-CuffScript is a language built less to perfect any one piece of syntax than to make programming itself feel less intimidating. There is nothing to install or configure: you can run your first line right here on this page.
+CuffScript is a language built less to perfect any one piece of syntax than to make programming itself feel less intimidating. There is nothing to install or configure: open the IDE and you can run your first line in your browser within a few seconds.
 
 <div class="home-cta">
 <a class="btn btn-primary" href="/ide/">
