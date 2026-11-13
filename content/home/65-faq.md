@@ -55,7 +55,7 @@ DLC is the name for the built-in libraries: {{engine.dlcNames}}. You switch one 
 
 ### Can I use it inside my own application?
 
-Yes. The engine is a library: use the `cuffscript-wasm` package from JavaScript or TypeScript, or the `CuffEngine` class from C++. The host decides what a program may touch. For example `cuffc` can switch the network and file libraries off (`--no-network`, `--no-filesystem`) and give a program a step or time budget (`--max-steps`, `--timeout`).
+Yes. The engine is a library: use the `cuffscript-wasm` package from JavaScript or TypeScript, or the `CuffEngine` class from C++. The [embedding guide](/guide/#embedding) walks through both, with complete examples. The host decides what a program may touch. For example `cuffc` can switch the network and file libraries off (`--no-network`, `--no-filesystem`) and give a program a step or time budget (`--max-steps`, `--timeout`).
 
 ### Is it safe to run a program I did not write?
 

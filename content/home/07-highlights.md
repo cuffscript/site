@@ -89,7 +89,7 @@ Rex says woof
 
 ### Runs anywhere
 
-The same engine runs in your browser as WebAssembly (the IDE on this site), as the command-line tool `cuffc`, and inside your own JavaScript or TypeScript project.
+The same engine runs in your browser as WebAssembly (the IDE on this site), as the command-line tool `cuffc`, and inside your own JavaScript, TypeScript or C++ project.
 
 ```bash
 npm install cuffscript-wasm

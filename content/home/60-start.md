@@ -15,7 +15,7 @@ The IDE on this site runs the CuffScript engine itself, compiled to WebAssembly,
 
 ### 2. Embed in a JS/TS project
 
-With the `cuffscript-wasm` package you can run CuffScript anywhere, in Node or in the browser.
+With the `cuffscript-wasm` package you can run CuffScript from any web page or bundler-based project, and from Node with a small loader. The [embedding guide](/guide/#embedding) also covers C++ and other languages.
 
 ```
 npm install cuffscript-wasm
