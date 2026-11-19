@@ -3,7 +3,7 @@ export interface CuffFile {
     content: string;
 }
 
-export type RunMode = "run" | "ast";
+export type RunMode = "run" | "ast" | "bytecode";
 
 export interface RunRequest {
     id: number;

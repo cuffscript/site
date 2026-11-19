@@ -62,6 +62,7 @@ The IDE on this site runs the real CuffScript engine inside your browser, so the
 
 - **Run (Ctrl/Cmd + Enter)** runs the currently open tab as the entry point of the program.
 - **View AST** shows the tokens and the syntax tree without running the code. It is the same information as `cuffc --ast`.
+- **Line numbers** can be pressed to select a whole line, and dragged to select several lines at once.
 - **Standard input (stdin)** is the text that `input()` reads. Whatever you write in the stdin tab is read one line at a time from the top, and `input()` returns an empty string once the lines run out. (In environments that support live input, a field appears in the output panel instead.)
 - **File tabs** hold the files of your project. The `+` button adds a file, so you can build a program from several files that load each other with `use ... from ...` (see [Modules and libraries](#modules)). A run always starts from the active tab.
 - **Share link** copies a URL that contains the whole project. Nothing is stored on a server, so you can pass code around with just a link.

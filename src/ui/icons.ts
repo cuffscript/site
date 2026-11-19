@@ -18,5 +18,6 @@ export const icons = {
   tree: svg('<path d="M4 5h4M4 12h7M4 19h10"/><circle cx="19" cy="5" r="1.6" fill="currentColor" stroke="none"/><circle cx="19" cy="12" r="1.6" fill="currentColor" stroke="none"/><circle cx="19" cy="19" r="1.6" fill="currentColor" stroke="none"/>'),
   game: svg('<rect x="3" y="8" width="18" height="10" rx="5"/><path d="M8 11v4M6 13h4"/><circle cx="16" cy="12" r="1" fill="currentColor" stroke="none"/><circle cx="18" cy="14" r="1" fill="currentColor" stroke="none"/>'),
   feather: svg('<path d="M20 4c-6 0-14 4-16 16 12-2 16-10 16-16z"/><path d="M4 20l6-6"/><path d="M8 16l2.5-1M11 13l2.5-1M14 10l2.5-1"/>'),
+  chip: svg('<rect x="7" y="7" width="10" height="10" rx="1.5"/><path d="M10 3v4M14 3v4M10 17v4M14 17v4M3 10h4M3 14h4M17 10h4M17 14h4"/>'),
   flash: svg('<path d="M13 2L4 14h6l-1 8 9-12h-6l1-8z" fill="currentColor" stroke="none"/>'),
 };

@@ -25,6 +25,7 @@ const exampleSelect = el<HTMLSelectElement>("example-select");
 const runBtn = el<HTMLButtonElement>("run-btn");
 const stopBtn = el<HTMLButtonElement>("stop-btn");
 const astBtn = el<HTMLButtonElement>("ast-btn");
+const bytecodeBtn = el<HTMLButtonElement>("bytecode-btn");
 const runStatus = el<HTMLElement>("run-status");
 const shareBtn = el<HTMLButtonElement>("share-btn");
 const downloadBtn = el<HTMLButtonElement>("download-btn");
@@ -36,6 +37,8 @@ const stdinInput = el<HTMLTextAreaElement>("stdin-input");
 runBtn.innerHTML = `${icons.play}<span>Run</span>`;
 stopBtn.innerHTML = `${icons.stop}<span>Stop</span>`;
 astBtn.innerHTML = `${icons.tree}<span>View AST</span>`;
+bytecodeBtn.innerHTML = `${icons.chip}<span>View bytecode</span>`;
+bytecodeBtn.hidden = !__CUFF_BYTECODE__;
 shareBtn.innerHTML = `${icons.link}<span>Share link</span>`;
 downloadBtn.innerHTML = `${icons.download}<span>Download</span>`;
 
@@ -171,6 +174,7 @@ function setRunningUI(running: boolean): void {
     runBtn.hidden = running;
     stopBtn.hidden = !running;
     astBtn.disabled = running;
+    bytecodeBtn.disabled = running;
     exampleSelect.disabled = running;
 }
 
@@ -225,6 +229,7 @@ function runProgram(mode: RunMode): void {
 
 runBtn.addEventListener("click", () => runProgram("run"));
 astBtn.addEventListener("click", () => runProgram("ast"));
+bytecodeBtn.addEventListener("click", () => runProgram("bytecode"));
 stopBtn.addEventListener("click", () => {
     engine.stop();
     consoleView.cancelInput();

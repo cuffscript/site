@@ -1,6 +1,7 @@
 import { defineConfig } from "vite";
 import { fileURLToPath } from "node:url";
 import cuffContent from "./scripts/vite-plugin-content.mjs";
+import { engineCanShowBytecode } from "./scripts/lib/engine-features.mjs";
 
 const root = fileURLToPath(new URL(".", import.meta.url));
 const htmlEntry = (name: string) => fileURLToPath(new URL(name, import.meta.url));
@@ -15,6 +16,8 @@ export default defineConfig({
     // Generates the guide / home page content from content/**/*.md (see README).
     plugins: [cuffContent()],
     assetsInclude: ["**/*.wasm"],
+    // The IDE offers "View bytecode" only when the installed engine build can do it.
+    define: { __CUFF_BYTECODE__: JSON.stringify(engineCanShowBytecode(root)) },
     worker: {
         format: "es",
     },

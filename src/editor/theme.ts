@@ -29,6 +29,8 @@ export const cuffEditorTheme = EditorView.theme({
     },
     ".cm-lineNumbers .cm-gutterElement": {
         padding: "0 12px 0 14px",
+        cursor: "pointer",
+        userSelect: "none",
     },
     ".cm-matchingBracket, .cm-nonmatchingBracket": {
         backgroundColor: "var(--accent-soft)",

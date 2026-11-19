@@ -2,7 +2,6 @@ import { EditorState } from "@codemirror/state";
 import {
     EditorView,
     keymap,
-    lineNumbers,
     highlightActiveLine,
     highlightActiveLineGutter,
     drawSelection,
@@ -13,12 +12,13 @@ import { closeBrackets, closeBracketsKeymap } from "@codemirror/autocomplete";
 import { search, searchKeymap, highlightSelectionMatches } from "@codemirror/search";
 import type { Extension } from "@codemirror/state";
 import { cuffLanguage } from "../editor/language";
+import { selectableLineNumbers } from "../editor/gutterSelect";
 import { cuffSyntaxHighlighting } from "../editor/highlightStyle";
 import { cuffEditorTheme } from "../editor/theme";
 import type { CuffFile } from "../engine/types";
 
 const baseExtensions: Extension[] = [
-    lineNumbers(),
+    selectableLineNumbers,
     highlightActiveLine(),
     highlightActiveLineGutter(),
     drawSelection(),

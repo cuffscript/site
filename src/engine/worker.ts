@@ -3,7 +3,7 @@ export { };
 declare const self: DedicatedWorkerGlobalScope;
 
 import createCuffScriptModule from "cuffscript-wasm";
-import type { CuffScriptModule } from "cuffscript-wasm";
+import type { CuffScriptModule, RunOutcome } from "cuffscript-wasm";
 import type { CuffFile, RunRequest, WorkerEvent } from "./types";
 import webPolicy from "./webPolicy.json";
 import engineMeta from "../generated/engine-meta.json";
@@ -67,6 +67,15 @@ const BLOCKED_DLCS: BlockedDlcs = webPolicy.blockedDlcs;
 // The tag the engine itself prints for "library unavailable", so the message looks the same.
 const DLC_UNAVAILABLE_TAG = engineMeta.errorCodes.find((e) => e.name === "DLCFeatureUnavailable")?.code ?? "E5";
 
+// Only newer engine builds export cuffBytecode (vite.config.ts offers the mode only then).
+type BytecodeModule = CuffScriptModule & { cuffBytecode?: (source: string, scriptDir: string) => RunOutcome };
+
+function runBytecode(mod: CuffScriptModule, source: string, scriptDir: string): RunOutcome {
+    const cuffBytecode = (mod as BytecodeModule).cuffBytecode;
+    if (!cuffBytecode) return { success: false, error: "This engine build cannot show bytecode." };
+    return cuffBytecode.call(mod, source, scriptDir);
+}
+
 function loadModule(): Promise<CuffScriptModule> {
     if (!modulePromise) {
         modulePromise = createCuffScriptModule({
@@ -128,7 +137,7 @@ self.onmessage = async (event: MessageEvent<RunRequest>) => {
         return;
     }
 
-    if (req.mode === "run") {
+    if (req.mode !== "ast") {
         const usage = findBlockedDlcUsage(req.files, BLOCKED_DLCS);
         if (usage) {
             post({ id: req.id, type: "done", success: false, error: formatBlockedError(usage, DLC_UNAVAILABLE_TAG), elapsedMs: 0 });
@@ -146,7 +155,9 @@ self.onmessage = async (event: MessageEvent<RunRequest>) => {
         const outcome =
             req.mode === "ast"
                 ? mod.cuffDump(entryFile.content)
-                : mod.cuffRun(entryFile.content, scriptDir);
+                : req.mode === "bytecode"
+                  ? runBytecode(mod, entryFile.content, scriptDir)
+                  : mod.cuffRun(entryFile.content, scriptDir);
         const elapsedMs = performance.now() - start;
 
         post({
