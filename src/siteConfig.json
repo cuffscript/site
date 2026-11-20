@@ -1,5 +1,6 @@
 {
     "repo": "cuffscript/cuffscript",
     "branch": "main",
-    "newsCount": 3
+    "newsCount": 3,
+    "viewBytecode": true
 }

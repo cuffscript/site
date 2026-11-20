@@ -1,3 +1,4 @@
+import siteConfig from "./siteConfig.json";
 import "./styles/base.css";
 import "./styles/ide.css";
 import { initColorScheme } from "./ui/colorScheme";
@@ -38,7 +39,7 @@ runBtn.innerHTML = `${icons.play}<span>Run</span>`;
 stopBtn.innerHTML = `${icons.stop}<span>Stop</span>`;
 astBtn.innerHTML = `${icons.tree}<span>View AST</span>`;
 bytecodeBtn.innerHTML = `${icons.chip}<span>View bytecode</span>`;
-bytecodeBtn.hidden = !__CUFF_BYTECODE__;
+bytecodeBtn.hidden = !siteConfig.viewBytecode;
 shareBtn.innerHTML = `${icons.link}<span>Share link</span>`;
 downloadBtn.innerHTML = `${icons.download}<span>Download</span>`;
 

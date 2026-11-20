@@ -147,3 +147,12 @@ Pages, GitHub Pages) resolve `/ide` and `/guide` to their folder's
 ## License
 
 Apache-2.0 — see [`LICENSE`](LICENSE).
+
+## IDE features that depend on the engine
+
+The IDE's **View bytecode** button runs a program and prints the bytecode that each piece of it is
+compiled into (what `cuffc --bytecode` does). It needs a `cuffscript-wasm` that exports
+`cuffBytecode` (the function is declared in the engine's `wasm/bindings.cpp`). If the installed
+package is older, the button still shows and reports that the engine cannot do it yet, so run
+`npm update cuffscript-wasm` after publishing the engine. To hide the button instead, set
+`viewBytecode` to `false` in `src/siteConfig.json`.

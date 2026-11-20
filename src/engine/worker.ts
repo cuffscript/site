@@ -67,12 +67,12 @@ const BLOCKED_DLCS: BlockedDlcs = webPolicy.blockedDlcs;
 // The tag the engine itself prints for "library unavailable", so the message looks the same.
 const DLC_UNAVAILABLE_TAG = engineMeta.errorCodes.find((e) => e.name === "DLCFeatureUnavailable")?.code ?? "E5";
 
-// Only newer engine builds export cuffBytecode (vite.config.ts offers the mode only then).
+// Only newer engine builds export cuffBytecode.
 type BytecodeModule = CuffScriptModule & { cuffBytecode?: (source: string, scriptDir: string) => RunOutcome };
 
 function runBytecode(mod: CuffScriptModule, source: string, scriptDir: string): RunOutcome {
     const cuffBytecode = (mod as BytecodeModule).cuffBytecode;
-    if (!cuffBytecode) return { success: false, error: "This engine build cannot show bytecode." };
+    if (!cuffBytecode) return { success: false, error: "This build of the engine does not export cuffBytecode. Update the cuffscript-wasm package to a version that does." };
     return cuffBytecode.call(mod, source, scriptDir);
 }
 
