@@ -8,7 +8,7 @@ Short answers to the questions people ask first. Click a question to open it.
 
 ### Is CuffScript only for beginners?
 
-It is designed to be easy to start with, but it is a complete language and not a toy. It has functions (with typed parameters and default values), classes with inheritance and private members, `async` calls, pattern matching, error handling with `or_else` and `fail`, modules, and built-in libraries for math, text, lists, maps, JSON, dates, time and random numbers. What it leaves out on purpose, such as closures, multiple inheritance and `==`, keeps the language small enough to learn completely.
+It is designed to be easy to start with, but it is a complete language and not a toy. It has functions (with typed parameters and default values), classes with inheritance and private members, `async` calls, pattern matching, error handling with `or_else` and `fail`, modules, and built-in libraries for math and bit operations, text, lists, maps, JSON, CSV, dates, time, hashes, file paths and random numbers. What it leaves out on purpose, such as closures, multiple inheritance and `==`, keeps the language small enough to learn completely.
 
 ### Do I need to install anything to try it?
 

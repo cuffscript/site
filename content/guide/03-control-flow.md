@@ -207,10 +207,9 @@ print(a, c)
 [1, 2, 3, 4] [1, 2, 3, 4, 5]
 ```
 
-**Looking inside a collection.** The functions `length`, `contains` and `index_of` are not available until a library that provides them is loaded: `length` and `contains` come with `DLC:string`, `DLC:list` or `DLC:map`, and `index_of` with `DLC:string` or `DLC:list`.
+**Looking inside a collection.** The functions `length`, `contains` and `index_of` are built in, so they need no library. `length(x)` is the number of characters of a text, elements of a list or keys of a map. `contains(x, v)` asks whether a text has the part `v`, a list has an element equal to `v`, or a map has the key `v`. `index_of(x, v)` gives the 1-based position of the first match in a text or a list, or `empty`.
 
 ```cuff
-use DLC:list
 list items = [10, 20, 30]
 print(length(items), contains(items, 20), index_of(items, 30))
 ```

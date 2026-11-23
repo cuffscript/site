@@ -58,7 +58,7 @@ A method is a function declared in a class body, and it follows the rules of fun
 
 - The object that the method was called on is **`self`**. A field is always written `self.name`; a bare `name` in a method is a variable of the method.
 - A method is called with a dot and parentheses: `player.walk(3)`. A method is not a value, so `player.walk` without parentheses raises `MethodNotCalled` ({{error.MethodNotCalled}}), and so does calling a field.
-- A method can be `async` or `pure`. A queued `async` method runs later with the object it was called on, and `await object.method()` runs it now.
+- A method can be `async` or `pure`. An `async` method called without `await` starts a task that keeps the object it was called on, and `await object.method()` runs it now.
 
 ### Making an object
 

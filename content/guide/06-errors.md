@@ -56,7 +56,7 @@ The exact rules are:
 4. An error raised **inside** the handler is not caught by the same `or_else`.
 5. `return` inside a handler returns from the enclosing function, and `stop` ends the enclosing loop.
 6. `or_else` guards the one statement it follows. To guard several statements, put them in a function and guard the call.
-7. It cannot guard the work of an `async` call that is queued rather than awaited, because that line finished long before the call ran ([Functions](#async)).
+7. It cannot catch an error of an `async` call that is not awaited, because the call has not run yet when that line finishes. Keep the `Task` and put `or_else` on the `await` instead ([Async functions and tasks](#async)).
 
 Remember that not finding something is usually *not* an error. A failed `find` or `match` gives `empty`, so `or_else` does not run; test for it with `is empty`.
 

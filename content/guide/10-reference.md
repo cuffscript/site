@@ -15,7 +15,6 @@ summary: Common mistakes, known limitations, related links
 | Reading or assigning a global variable directly inside a function | A function sees only its own local variables. | Connect it first with `global name`. ([Scope and global](#scope)) |
 | `code is "[num]4"` to test a pattern | `is` only compares values, so this compares with that exact text and is false. | Use `code matches p"[num]4"`. To check only part of a text, use `find(text, p"...")`. |
 | Expecting `or_else` to run when `find` finds nothing | A failed `find` or `match` is not an error; it gives `empty`. | Test the result with `is empty`. |
-| `length(items)` without loading a library | `length`, `contains` and `index_of` come with libraries. | Add `use DLC:list` (or `DLC:string` / `DLC:map`). |
 | `remove 2 from items` to delete the second element | `remove` takes a **value**, so this removes the first element that equals `2` (an error when there is none). | Use `remove at 2 from items` to remove by position. |
 | `loop repeat number i = 1 ~ length(items)` over a list that may be empty | A range is never empty, so it still runs twice. | Use `loop each item in items do:`. |
 | `0.1 + 0.2 is 0.3` | Decimal fractions are not exact. | Round both sides first with `math_round`. |
@@ -35,8 +34,7 @@ summary: Common mistakes, known limitations, related links
 - **File system**: `DLC:filesystem` is available only in the native `cuffc`. In this browser IDE, a `use DLC:filesystem` in any file of the project makes the run refuse to start ([Modules and libraries](#dlc-filesystem)).
 - **Recursion depth**: a function call depth over 1,000 stops the run safely with a `StackOverflow` ({{error.StackOverflow}}) runtime error.
 - **Execution time limit**: to protect the tab from infinite loops, this IDE caps execution time (8 seconds by default; you can always stop a run yourself).
-- **Async is not concurrency**: `async` functions don't run in parallel on OS threads. It is cooperative scheduling: they run in order after the top-level synchronous code finishes.
-- **Objects that refer to each other** (two objects that each hold the other) are not freed before the program ends.
+- **Tasks are not threads**: one thing runs at a time, and a task that never waits holds up all the others. `async` makes waiting cheap; it does not make a calculation faster.
 
 ## Related links {#resources}
 

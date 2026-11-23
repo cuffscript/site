@@ -31,7 +31,7 @@ fib(10) = 55
 These are the rules for declaring and calling:
 
 - **Where.** Functions are declared at the top level of a program or module, or in a block of it (an `if`, say). Declaring one inside another function or a method raises `NestedFunctionNotSupported` ({{error.NestedFunctionNotSupported}}), so always declare functions at the top level.
-- **Hoisting.** Declarations are processed before the program runs, so a function may be called on a line above the one that declares it. If a name is declared more than once, the last declaration in the file is the one every call uses.
+- **Hoisting.** Declarations are processed before the program runs, so a function may be called on a line above the one that declares it. Two functions with the same name at the top level of one file are a syntax error (`DuplicateDeclaration` ({{error.DuplicateDeclaration}})); a module may still bring in a function whose name the program already has. The body of a block may be empty and written on one line for every kind of block (`func later() do: end`).
 - **Argument count.** A call must pass at least as many arguments as the function has parameters without a default, and at most as many as it has parameters; otherwise the error is `ArgumentCountMismatch` ({{error.ArgumentCountMismatch}}). There are no variable-length parameter lists.
 - **Not values.** A function is not a value: it cannot be stored in a variable, passed to another function, returned or compared. There are no closures. A function that has the name of a built-in function replaces that built-in for the whole program.
 - **Recursion.** A function can call itself. Calls may nest only so deep (1,000 levels), and unbounded recursion stops with `StackOverflow` ({{error.StackOverflow}}).
@@ -176,40 +176,75 @@ end
 
 To lift the restrictions, remove the word `pure`.
 
-## Async functions {#async}
+## Async functions and tasks {#async}
 
-An `async` function is a function whose calls are **queued** instead of run on the spot. CuffScript's `async` is cooperative and single-threaded: nothing ever runs in parallel, and `async` only changes *when* a call runs.
+A call of an `async` function can run as a **task**: a call that goes on by itself while the code that made it continues. Tasks are cooperative and single-threaded. One thing runs at a time, a task runs until it waits or ends, and nothing is interrupted, so there are no threads, no locks and no data races. `async` and `pure` can be combined and go in front of `func` in either order (`async pure func f()`).
 
-- A call to an `async` function without `await` does not run it now. The call is put in a queue and returns `empty` at once. After all the top-level code of the program has finished, the queued calls run, once each, in the order they were queued. Their return values cannot be seen. A queued function may queue further calls, and they run in the same pass.
-- `await f(...)` runs the function to completion right there and gives its result.
-- `await` on a function that is not `async` raises `AwaitOnNonAsync` ({{error.AwaitOnNonAsync}}).
-- An error raised by a queued call stops the program, and the calls queued after it do not run. An `or_else` written on the line that queued the call cannot catch it, because that line finished long before.
+- `await f(...)` runs the function to its end right there and gives its value, as the call of any function does.
+- `f(...)` **without** `await` starts a task and gives a `Task` value at once. The task does not run yet: it runs when the code that is running waits, or when the program reaches its end. Tasks run in the order in which they started, or began to wait.
+- `await t`, where `t` is a `Task`, waits until that task has finished and gives its result. A task's result can be awaited any number of times, and `t.done()` (or `task_done(t)`) tells whether the task has finished.
+- Waiting lets the other tasks run. `await` of a task that has not finished waits, and so do `time_sleep` ([`DLC:time`](#dlc-time-random)) and the requests of [`DLC:network`](#dlc-network). Waits overlap, so ten requests made by ten tasks take about as long as the slowest of them, not as long as all of them together.
+- The program has ended when its last line has run and every task has finished.
 
-`async` and `pure` can be combined and go in front of `func` in either order (`async pure func f()`).
+```cuff
+use DLC:time
+
+async func brew(str drink, number seconds) do:
+    time_sleep(seconds)
+    return drink + " is ready"
+end
+
+Task tea = brew("tea", 0.2)
+Task coffee = brew("coffee", 0.1)
+print(tea.done())
+print(await coffee)
+print(await tea)
+```
+
+```output
+false
+coffee is ready
+tea is ready
+```
+
+The two waits overlap, so the program takes about 0.2 seconds, not 0.3. A program that never waits runs its tasks after its last line, in the order in which they started:
 
 ```cuff
 async func notify() do:
     print("[async] done")
 end
 
-async func fetch_score() do:
-    return 87
-end
-
 print("[sync] start")
-notify() note: queued, not run now
-number score = await fetch_score() note: await runs it immediately
-print(f"[sync] score = {score}")
+notify()
 print("[sync] end")
-note: the queued notify() runs after this point.
 ```
 
 ```output
 [sync] start
-[sync] score = 87
 [sync] end
 [async] done
 ```
+
+`Task` is a built-in class: a variable can be declared `Task`, but a program cannot make one with `Task()`, extend it or declare a class of that name. A module's top level does not run its tasks when it ends; they belong to the program and run when it waits.
+
+**Errors in tasks.** An error in a task is not lost. It is raised at each `await` of the task, where `or_else` can catch it. A call written as a statement of its own (`notify()`) starts a task whose value nothing keeps, so an error in it ends the program, and so does an error in a task that is never awaited when the program reaches its end. An error that `or_else` may not catch (a resource limit) ends the program wherever it happens.
+
+```cuff
+async func risky() do:
+    fail "network down"
+end
+
+Task job = risky()
+await job or_else as Error e do:
+    print("caught:", e.message)
+end
+```
+
+```output
+caught: network down
+```
+
+Tasks that all wait for each other can never go on: that is `TaskDeadlock` ({{error.TaskDeadlock}}), raised where the program waits, and a task cannot wait for itself either. `await` of something that is neither a `Task` nor a call of an `async` function, and `await` of a call of a function that is not `async`, raise `AwaitOnNonAsync` ({{error.AwaitOnNonAsync}}). There are limits on how many tasks exist and how many wait at once.
 
 ## Calling a function as a method {#methods}
 

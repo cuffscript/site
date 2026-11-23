@@ -35,7 +35,7 @@ These are the rules:
 CuffScript comes with a set of library packages called **DLCs**. A library's functions become available from the line `use DLC:name` onward, and every function is then called directly by its name, with no `DLC:` prefix. Several libraries can be loaded on one line, separated by commas, as in `use DLC:math, DLC:string` (each entry needs its own `DLC:`). Loading a library twice is harmless, and an unknown library name raises `UnknownDLC` ({{error.UnknownDLC}}) with a hint that lists the libraries that exist.
 
 ::: callout Every function name is "library_verb"
-`sqrt` becomes `math_sqrt`, `upper` becomes `str_upper`, `get` becomes `network_get`: a library prefix tells you from the name alone which `use` line a function came from. The exceptions are `length`, `contains` and `index_of` (provided by the string, list and map libraries and deliberately behaving the same across them), and `to_json`, `from_json`, `to_number`, `to_str` and `to_boolean` (whose names already show their direction).
+`sqrt` becomes `math_sqrt`, `upper` becomes `str_upper`, `get` becomes `network_get`: a library prefix tells you from the name alone which `use` line a function came from. The exceptions are `length`, `contains` and `index_of` (built in, so they need no library), and `to_json`, `from_json`, `to_number`, `to_str` and `to_boolean` (whose names already show their direction).
 :::
 
 These rules hold for every library function:
@@ -45,9 +45,9 @@ These rules hold for every library function:
 - Text is measured and indexed in characters, not bytes.
 - A function whose first argument is the value it works on can also be written as a method of that value, such as `text.upper()` ([Calling a function as a method](#methods)).
 
-**Always available.** These work without any `use`: `print`, `input`, `type_of(x)` (the type name as text, or the class name for an object), `to_number`, `to_str`, `to_boolean`, `copy` (a shallow copy of a list, map or object), `pattern` and the seven pattern functions `match`, `find`, `find_all`, `replace`, `replace_all`, `split` and `count` ([Pattern matching](#pattern-commands)).
+**Always available.** These work without any `use`: `print`, `input`, `type_of(x)` (the type name as text, or the class name for an object), `to_number`, `to_str`, `to_boolean`, `copy` (a shallow copy of a list, map or object), `length`, `contains` and `index_of`, `task_done` (whether a `Task` has finished), `pattern` and the seven pattern functions `match`, `find`, `find_all`, `replace`, `replace_all`, `split` and `count` ([Pattern matching](#pattern-commands)).
 
-**Need a library.** `length` and `contains` are not available until `DLC:string`, `DLC:list` or `DLC:map` is loaded, and `index_of` needs `DLC:string` or `DLC:list`. Without one of those lines the call raises `UndefinedFunction` ({{error.UndefinedFunction}}), and `use DLC:map` alone does not give you `index_of`.
+`length(x)` is the number of characters, elements or keys of a text, list or map. `contains(x, v)` asks whether a text has the part `v`, a list an element equal to `v`, or a map the key `v`, and `index_of(x, v)` gives the 1-based position of the first match in a text or a list, or `empty`.
 
 ### Full function list
 
@@ -74,6 +74,12 @@ Mathematical functions on numbers. Anything that is not a finite number (the squ
 | `math_sin(x)`, `math_cos(x)`, `math_tan(x)` | Trigonometry, in radians |
 | `math_asin(x)`, `math_acos(x)`, `math_atan(x)`, `math_atan2(y, x)` | Inverse trigonometry, giving radians |
 | `math_pi()`, `math_e()` | The constants, called with no arguments |
+| `math_bit_and(a, b, ...)`, `math_bit_or(a, b, ...)`, `math_bit_xor(a, b, ...)` | The bits set in every number, in any of them, or in an odd number of them (two or more numbers) |
+| `math_bit_not(x, width)` | `x` with its lowest `width` bits flipped, the complement in `width` bits (`width` from 1 to 53, and `x` must fit in it) |
+| `math_bit_shl(x, n)`, `math_bit_shr(x, n)` | `x` shifted `n` bits (0 to 53) to the left or to the right; shifting right drops the low bits |
+| `math_bit_test(x, position)` | Whether the bit at `position` is set (0 is the lowest bit, 52 the highest), as a `boolean` |
+| `math_to_base(x, base [, width])` | The digits of `x` in a base from 2 to 36 as a `str` (`0`-`9`, then lowercase `a`-`z`), padded on the left with zeros to at least `width` digits |
+| `math_from_base(text, base)` | The number that the digits in `text` write in that base; only digits are accepted, in either case (no sign, space or prefix such as `0x`) |
 
 ```cuff
 use DLC:math
@@ -108,15 +114,41 @@ print(0.1 + 0.2 is 0.3, math_round(0.1 + 0.2, 10) is 0.3)
 false true
 ```
 
+The bit functions and the base functions work on the whole numbers from `0` to `9007199254740991` (2^53 - 1), the ones that a `number` holds exactly. A negative number, a fraction or a larger one raises `InvalidArgumentValue` ({{error.InvalidArgumentValue}}), and so does a left shift that would push a bit past the 53rd, so no bit is lost silently. There are no negative numbers, so `math_bit_not` takes the width to complement in. The language has no hexadecimal or binary literals: `math_from_base` reads them from text and `math_to_base` writes them. Each of the nine is also a method: `12.bit_and(10)`, `255.to_base(16)`, `"ff".from_base(16)`.
+
+```cuff
+use DLC:math
+print(math_bit_and(12, 10), math_bit_or(12, 10), math_bit_xor(12, 10), math_bit_not(5, 4))
+print(math_bit_shl(1, 10), math_bit_shr(1024, 3), math_bit_test(5, 2), 5.bit_test(1))
+print(math_to_base(255, 16), math_to_base(5, 2, 8), math_from_base("FF", 16), "1010".from_base(2))
+```
+
+```output
+8 14 6 10
+1024 128 true false
+ff 00000101 255 10
+```
+
+Setting and clearing a flag in an 8-bit register:
+
+```cuff
+use DLC:math
+number status = math_from_base("10010110", 2)
+number set = math_bit_or(status, math_bit_shl(1, 0))
+number cleared = math_bit_and(set, math_bit_not(math_bit_shl(1, 7), 8))
+print(math_to_base(set, 2, 8), math_to_base(cleared, 2, 8))
+```
+
+```output
+10010111 00010111
+```
+
 ### `DLC:string` {#dlc-string}
 
-Functions on text. A text is a sequence of characters, so `length("héllo")` is 5.
+Functions on text. A text is a sequence of characters, so `length("héllo")` is 5 (`length`, `contains` and `index_of` are built in and work on texts too).
 
 | Function | Result |
 |---|---|
-| `length(s)` | The number of characters |
-| `contains(s, part)` | Whether `s` contains the text `part` |
-| `index_of(s, part)` | The 1-based position of the first `part`, or `empty` if there is none |
 | `str_upper(s)`, `str_lower(s)` | The text in upper or lower case |
 | `str_trim(s)`, `str_trim_start(s)`, `str_trim_end(s)` | The text without surrounding white space (both sides, the start, the end) |
 | `str_starts_with(s, prefix)`, `str_ends_with(s, suffix)` | Whether the text begins or ends with the given text |
@@ -144,7 +176,7 @@ true true ababab
 
 ### `DLC:time` and `DLC:random` {#dlc-time-random}
 
-`time_now()` gives the seconds since the Unix epoch (1970-01-01 00:00:00 UTC) with a fractional part; `time_timestamp()` is the same function. To turn those seconds into calendar dates, use `DLC:datetime` below. The random functions are:
+`time_now()` gives the seconds since the Unix epoch (1970-01-01 00:00:00 UTC) with a fractional part; `time_timestamp()` is the same function. To turn those seconds into calendar dates, use `DLC:datetime` below. `time_sleep(seconds)` waits at least that many seconds (fractions are allowed, up to a limit of 1000 days; a negative or larger number raises `InvalidArgumentValue`) and gives `empty`. Inside a task it lets the other tasks run ([Async functions and tasks](#async)), and a program's time limit still ends it in the middle of a sleep. The random functions are:
 
 | Function | Result |
 |---|---|
@@ -263,7 +295,6 @@ Functions on lists. They follow a functional style: they **return a new list** a
 
 | Function | Result |
 |---|---|
-| `length(xs)`, `contains(xs, v)`, `index_of(xs, v)` | The number of elements, whether an element equal to `v` exists, and the 1-based position of the first one (or `empty`) |
 | `list_sort(xs)` | A copy in ascending order. The elements must be all numbers or all texts |
 | `list_reverse(xs)` | A copy in reverse order |
 | `list_unique(xs)` | A copy with later duplicates removed |
@@ -298,7 +329,6 @@ A map has no built-in way to list its keys, so load this library when you need t
 
 | Function | Result |
 |---|---|
-| `length(m)`, `contains(m, key)` | The number of keys, and whether the map has the key |
 | `map_has_key(m, key)` | The same as `contains`, spelled for maps |
 | `map_keys(m)`, `map_values(m)` | Lists of the keys and of the values, in insertion order |
 | `map_entries(m)` | A list of `[key, value]` pairs |
@@ -377,9 +407,120 @@ print(parsed["name"])
 Alice
 ```
 
+### `DLC:csv` {#dlc-csv}
+
+Reads and writes CSV text (comma-separated values), the format that spreadsheets and many tools exchange. A **row** is a list of fields, and a **record** is a map from a field name to its field.
+
+| Function | Result |
+|---|---|
+| `csv_parse(text [, separator])` | A list of rows, each a list of fields. The separator is one character, a comma by default. |
+| `csv_parse_records(text [, separator])` | A list of maps: the first row names the fields, and every other row maps those names to its fields. A field name given twice, or a row with more or fewer fields than the first, raises `InvalidArgumentValue` ({{error.InvalidArgumentValue}}) with the row's number. |
+| `csv_write(rows [, separator])` | The rows as text, one line each. |
+| `csv_write_records(records [, separator])` | A header row of every key, in the order the keys first appear, then a row for each map; a key that a map does not have is an empty field. |
+
+```cuff
+use DLC:csv
+
+str text = "name,score\nAda,95\nLinus,88\n"
+list records = csv_parse_records(text)
+loop each map record in records do:
+    print(record["name"], to_number(record["score"]) + 1)
+end
+print(type_of(csv_parse(text)[2][2]))
+print(csv_write([["a", "b,c"], ["say \"hi\"", "3.5"]]))
+print(csv_parse("x;y\n1;2", ";"))
+print(csv_write_records(records))
+```
+
+```output
+Ada 96
+Linus 89
+str
+a,"b,c"
+"say ""hi""",3.5
+
+[["x", "y"], ["1", "2"]]
+name,score
+Ada,95
+Linus,88
+```
+
+A field that holds the separator, a quote or a line break is written between quotes with the quotes inside it doubled, and read back the same way. Every field is read as a text, so convert numbers yourself with `to_number`.
+
+### `DLC:hash` {#dlc-hash}
+
+Hashes, message authentication codes, encodings and checksums, so a program can fingerprint data, sign it, or exchange it with other systems. A function that takes data takes a `str` and uses its UTF-8 bytes. A hash comes back as lowercase hexadecimal text.
+
+| Function | Result |
+|---|---|
+| `hash_sha256(data)` | SHA-256: 64 hexadecimal digits. The standard choice for a fingerprint of data. |
+| `hash_sha512(data)` | SHA-512: 128 digits. |
+| `hash_sha1(data)`, `hash_md5(data)` | SHA-1 (40 digits) and MD5 (32 digits). Both are broken for collisions: use them for compatibility with what still needs them, and for file checksums, never for security. |
+| `hash_crc32(data)` | CRC-32 as zip and PNG compute it: 8 digits. A fast check for accidental damage, with no security at all. |
+| `hash_hmac_sha256(key, message)`, `hash_hmac_sha512(key, message)` | HMAC: a code that only someone who has the key can make for the message. |
+| `hash_pbkdf2_sha256(password, salt, iterations [, length])` | PBKDF2 with HMAC-SHA-256: a key of `length` bytes (32 when left out), made slow to guess by `iterations` rounds. Both numbers have a limit. For storing passwords, a salt of 16 random bytes and 600,000 rounds or more are the usual advice. |
+| `hash_equal(a, b)` | Whether `a` and `b` are the same bytes, compared in a time that does not depend on where they differ. Use it to check a code or key that someone else sent; `is` stops at the first difference, which tells a patient attacker how much of a guess was right. |
+| `hash_hex_encode(data)`, `hash_hex_decode(text)` | Base16: two lowercase digits per byte. Decoding takes either case and needs an even number of digits. |
+| `hash_base64_encode(data)`, `hash_base64_decode(text)` | Base64 with `=` padding. Decoding accepts the text with or without its padding. |
+| `hash_base64url_encode(data)`, `hash_base64url_decode(text)` | The URL-safe Base64: `-` and `_` in place of `+` and `/`, written without padding, as JSON Web Tokens and URLs use it. |
+| `hash_to_bytes(text)`, `hash_from_bytes(bytes)` | The bytes of a `str` as a list of numbers, and a `str` made of those bytes. |
+
+Text that is not valid Base64 or hexadecimal, and a number outside a limit, raise `InvalidArgumentValue` ({{error.InvalidArgumentValue}}).
+
+```cuff
+use DLC:hash
+
+print(hash_sha256("hello"))
+print(hash_crc32("123456789"), hash_md5(""))
+print(hash_equal("secret", "secret"), hash_equal("secret", "Secret"))
+print(hash_base64_encode("hello"), hash_base64_decode("aGVsbG8="), hash_hex_encode("hi"))
+print(hash_to_bytes("Hi"), hash_from_bytes([72, 105]))
+```
+
+```output
+2cf24dba5fb0a30e26e83b2ac5b9e29e1b161e5c1fa7425e73043362938b9824
+cbf43926 d41d8cd98f00b204e9800998ecf8427e
+true false
+aGVsbG8= hello 6869
+[72, 105] Hi
+```
+
+### `DLC:path` {#dlc-path}
+
+Works with file names as **text**: it never touches the file system, so it behaves the same everywhere and needs no permission. Names are written with `/`, as the rest of CuffScript does.
+
+| Function | Result |
+|---|---|
+| `path_join(part, ...)` | The parts joined with `/`. A part that is absolute starts the path again; an empty part adds nothing. |
+| `path_normalize(path)` | The path with `.` parts and doubled slashes removed and each `..` taking away the part before it. A relative path keeps the `..` it cannot resolve. |
+| `path_basename(path)`, `path_dirname(path)` | The last part, and everything before it (`.` when there is nothing before it). |
+| `path_extension(path)`, `path_stem(path)` | The last part from its last dot (`.gz` of `a.tar.gz`, or an empty text), and the last part without its extension. A name that only starts with a dot, such as `.bashrc`, has no extension. |
+| `path_with_extension(path, extension)` | The path with its extension replaced or added; an empty text removes it. |
+| `path_split(path)` | The parts as a list, the root first when there is one. |
+| `path_is_absolute(path)` | Whether the path begins with a root. |
+| `path_relative(from, to)` | The path that leads from the folder `from` to `to`; both must be absolute with the same root, or both relative. |
+
+```cuff
+use DLC:path
+
+print(path_join("reports", "2024", "q1.csv"))
+print(path_dirname("reports/2024/q1.csv"), path_basename("reports/2024/q1.csv"))
+print(path_extension("archive.tar.gz"), path_stem("q1.csv"), path_with_extension("q1.csv", ".txt"))
+print(path_normalize("a/./b/../c//d"), path_is_absolute("/etc"), path_is_absolute("etc"))
+print(path_split("/usr/local/bin"), path_relative("/a/b", "/a/c/d"))
+```
+
+```output
+reports/2024/q1.csv
+reports/2024 q1.csv
+.gz q1 q1.txt
+a/c/d true false
+["/", "usr", "local", "bin"] ../c/d
+```
+
 ### `DLC:network` {#dlc-network}
 
-`network_get(url)` and `network_post(url, body [, content_type])` are backed by a working HTTP/1.1 client and return a map shaped like `{"status", "ok", "body"}`. Only plain HTTP is supported, and `https://` is not quietly downgraded to plain text: it is an error right away. A connection failure, a DNS failure or a timeout is a `NetworkRequestFailed` ({{error.NetworkRequestFailed}}) runtime error, which `or_else` can catch. Requests to loopback and private address ranges (including cloud metadata addresses) are blocked by default to prevent server-side request forgery. A host that runs untrusted code can turn the library off completely with `CuffEngine::Options::networkEnabled = false` (or `cuffc --no-network`).
+`network_get(url)` and `network_post(url, body [, content_type])` are backed by a working HTTP/1.1 client and return a map shaped like `{"status", "ok", "body"}`. Only plain HTTP is supported, and `https://` is not quietly downgraded to plain text: it is an error right away. A connection failure, a DNS failure or a timeout is a `NetworkRequestFailed` ({{error.NetworkRequestFailed}}) runtime error, which `or_else` can catch. A request made inside a task lets the other tasks run until its answer comes ([Async functions and tasks](#async)), and only a limited number of requests are under way at once while the rest wait their turn. Requests to loopback and private address ranges (including cloud metadata addresses) are blocked by default to prevent server-side request forgery. A host that runs untrusted code can turn the library off completely with `CuffEngine::Options::networkEnabled = false` (or `cuffc --no-network`).
 
 ```cuff
 use DLC:network
@@ -472,3 +613,39 @@ false true true
 ::: warn It is blocked outright in this browser IDE
 Unlike `DLC:network`, this is not "mostly fails" but a firm block. Instead of leaving each file operation as a failure for `or_else` to catch, this IDE refuses to run at all, with an immediate error, if `use DLC:filesystem` appears anywhere in the code. The sandbox "file system" on this page is a virtual store that holds the other tabs of this IDE project, so letting code read and write it would only be confusing. In a locally installed `cuffc` it works normally unless you pass `--no-filesystem`.
 :::
+
+### `DLC:hardware` {#dlc-hardware}
+
+Lets a program ask about, and use, the parts of the device it runs on: its battery, buttons, lights, buzzer, screen, serial line, sensors and pins. CuffScript cannot reach any of them by itself. The **host** (the program that runs the script) decides which parts exist and supplies them, so hardware is off until a host turns a part on (`cuffc --hardware` does it for the command-line tool, and an embedding program supplies its own). The same program then runs on a laptop, a board or a robot, and asks `hw_supports` first. A part that is not there raises `HardwareUnsupported` ({{error.HardwareUnsupported}}), which `or_else` can catch.
+
+| Function | Result |
+|---|---|
+| `hw_supports(part)` | Whether the device has the part and the host gives it. `part` is one of `"battery"`, `"button"`, `"led"`, `"beep"`, `"screen_text"`, `"serial"`, `"sensor"`, `"pin"`, `"pwm"` or `"analog"`. |
+| `hw_battery()` | A map: `"level"` (0 to 100) and `"charging"` (a `boolean`). |
+| `hw_button(button)` | `true` while the button is held down. |
+| `hw_led(light, on)` | Turns the light on (`true`) or off (`false`). |
+| `hw_beep(hertz, seconds)` | Sounds the buzzer; 880 Hz for 0.2 seconds when nothing is given. |
+| `hw_screen_text(line, text)` | Shows `text` on a line of the device's screen, counted from 0. |
+| `hw_serial()` and `hw_serial(text)` | What has arrived on the serial line since the last read (an empty text when nothing has; it does not wait), and sending `text` on it. |
+| `hw_sensor(name)` | The reading of the sensor with that name, a number. The names are the host's; the usual ones are `"temperature"`, `"humidity"`, `"light"` and `"pressure"`. |
+| `hw_pin(pin)` and `hw_pin(pin, high)` | Reads a digital pin (`true` for high), and sets it high or low. |
+| `hw_pwm(pin, duty)` | Drives the pin with a pulse that is on for `duty` of the time, from 0 to 1. |
+| `hw_analog(pin)` | Reads an analog input as a fraction of its range, from 0 to 1. |
+
+The numbers that name a button, a light, a line of a screen or a pin are the host's own. `--hardware` gives a computer the parts it really has, such as a battery, a temperature sensor and the terminal's bell; a part the computer does not have is simply not supported.
+
+```cuff
+use DLC:hardware
+
+print(hw_supports("battery"))
+hw_led(1, true) or_else as Error e do:
+    print(e.message)
+end
+```
+
+```output
+false
+hw_led() is not supported on this device
+```
+
+In this browser IDE no hardware is supplied, so every part reports that it is not supported. A host that embeds the engine decides what to supply ([Embedding](#embedding-cpp)).

@@ -162,6 +162,10 @@ for (const fn of known) {
 }
 const prefixes = Object.keys(prefixCount).filter((p) => prefixCount[p] >= 2);
 const nameRe = new RegExp(`(?<![\\w])(?:${prefixes.join("|")})_[a-z0-9_]+(?![\\w])`, "g");
+// A library function is also a method of its value, without the library prefix (`text.upper()`, `255.to_base(16)`).
+for (const [lib, d] of Object.entries(meta.dlc)) {
+    for (const fn of d.functions) if (fn.startsWith(`${lib}_`)) known.add(fn.slice(lib.length + 1));
+}
 
 for (const file of mdFiles) {
     const rel = path.relative(root, file);

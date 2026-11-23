@@ -156,6 +156,18 @@ inline void registerExtraDLC(std::unordered_map<std::string, NativeFn> &reg)
     assert.deepEqual(meta.dlc.extra.functions, ["extra_thing", "extra_more"]);
 });
 
+test("functions registered through a table of name and function pointer are found", () => {
+    const files = baseFiles();
+    files["engine/dlc/ExtraDLC.h"] = `
+inline void registerExtraDLC(std::unordered_map<std::string, NativeFn> &reg)
+{
+    static const struct { const char *name; Value (*fn)(int); } functions[] = {{"extra_one", &one}, {"extra_two", two}};
+    for (const auto &f : functions) reg[f.name] = nullptr;
+}`;
+    const meta = extractEngineMeta(fakeEngine(files));
+    assert.deepEqual(meta.dlc.extra.functions, ["extra_one", "extra_two"]);
+});
+
 test("always-available functions include the DLC that the core registers itself (convert)", () => {
     const meta = extractEngineMeta(fakeEngine(baseFiles()));
     assert.deepEqual(meta.coreBuiltins.sort(), ["print", "to_str", "type_of"]);

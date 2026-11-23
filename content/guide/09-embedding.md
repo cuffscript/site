@@ -11,11 +11,12 @@ The CuffScript engine is a library, not only a command-line tool. Your own progr
 |---|---|---|---|
 | What you use | The `cuffscript-wasm` package (the engine compiled to WebAssembly) | The engine's headers, nothing to link | The `cuffc` program, run as a separate process |
 | Where it runs | Browsers and web workers; Node with a small loader | Any C++17 program | Anywhere you can start a process |
-| Run a program | `mod.cuffRun(source, scriptDir)` | `CuffEngine::execute(...)` or a `Session` | `cuffc file.cuff`, or the source on standard input |
+| Run a program | `mod.cuffRun(source, scriptDir)` | `Engine::execute(...)`, or `engine.run(...)` on an `Engine` | `cuffc file.cuff`, or the source on standard input |
 | Output | A callback, once per printed line | `std::cout` | Standard output |
 | Errors | `{ success, error }` | `Result::error` | Standard error, and a non-zero exit status |
 | Limits on a script | None inside the module: run it in a worker that you can terminate | Step and time budgets, libraries switched off, a root folder | The same, as flags |
-| Programs that arrive in pieces | No: each run starts fresh | Yes: `Session` | No |
+| Programs that arrive in pieces | No: each run starts fresh | Yes: one `Engine` runs piece after piece | No |
+| Call the program's functions, give it functions of your own | No | Yes: `call`, `get`, `set` and `addFunction` | No |
 
 Whichever you choose, read [Before you ship](#embedding-safety) first if the scripts will not be written by you.
 
@@ -91,7 +92,7 @@ false
   |         ^ division by zero
 ```
 
-One module can run any number of programs, one after the other, but **each call starts from nothing**: a variable that one program declares is gone when the call ends, and the next program cannot see it. If you need programs that build on each other, that is what the C++ `Session` is for.
+One module can run any number of programs, one after the other, but **each call starts from nothing**: a variable that one program declares is gone when the call ends, and the next program cannot see it. If you need programs that build on each other, that is what the C++ `Engine` is for.
 
 ### Input
 
@@ -138,13 +139,13 @@ Hello, CuffScript!
 true
 ```
 
-### The syntax tree
+### The syntax tree and the bytecode
 
-`mod.cuffDump(source)` parses a program without running it and prints the token list and the syntax tree through your `print` callback, the same information as `cuffc --ast`. It returns `{ success, error }` like `cuffRun`, which makes it useful for editors and other tools that need to understand a program rather than run it.
+`mod.cuffDump(source)` parses a program without running it and prints the token list and the syntax tree through your `print` callback, the same information as `cuffc --ast`. `mod.cuffBytecode(source, scriptDir)` runs a program like `cuffRun` and also prints, in order with its output, the bytecode that each piece of it is compiled into, as `cuffc --bytecode` does. Both return `{ success, error }`, which makes them useful for editors and other tools that need to understand a program rather than only run it; this site's IDE uses them for **View AST** and **View bytecode**.
 
 ### TypeScript
 
-The package ships its own types, so nothing else is needed. `CuffScriptModule` describes the module, `RunOutcome` the result of a run, and `CuffScriptModuleConfig` the configuration.
+The package ships its own types, so nothing else is needed. `CuffScriptModule` describes the module (`cuffRun`, `cuffDump`, `cuffBytecode` and `FS`), `RunOutcome` the result of a run, and `CuffScriptModuleConfig` the configuration.
 
 ```ts
 import createCuffScriptModule from "cuffscript-wasm";
@@ -198,7 +199,7 @@ The module runs every program with the engine's default options. There is no ste
 
 ## C++ {#embedding-cpp}
 
-The engine is a set of C++17 headers under `engine/`. There is nothing to build or link: include the header you need and compile with `-I` pointing at the repository's root. Build with exceptions on (the default); the engine uses them internally and never lets one escape. The headers compile without warnings under `-Wall -Wextra`.
+The engine is a set of C++17 headers under `engine/`. There is nothing to build or link: include `engine/CuffEngine.h`, the one header a host needs, and compile with `-I` pointing at the repository's root. Build with exceptions on (the default); the engine uses them internally and never lets one escape. The headers compile without warnings under `-Wall -Wextra`. Everything lives in the `cuff` namespace, and the class that runs programs is `cuff::Engine`.
 
 ```cpp
 // host.cpp
@@ -208,7 +209,7 @@ The engine is a set of C++17 headers under `engine/`. There is nothing to build 
 
 int main()
 {
-    cuff::CuffEngine::Options options;
+    cuff::Engine::Options options;
     options.timeoutMs = 2000;          // stop a runaway script after two seconds
     options.maxSteps = 1000000;        // and after a million loop passes and calls
     options.networkEnabled = false;    // scripts may not reach the network
@@ -217,14 +218,14 @@ int main()
     // print() writes to std::cout, so swap the stream buffer to capture it.
     std::ostringstream captured;
     std::streambuf *previous = std::cout.rdbuf(captured.rdbuf());
-    auto result = cuff::CuffEngine::execute("print(6 * 7)\n", ".", options);
+    auto result = cuff::Engine::execute("print(6 * 7)\n", ".", options);
     std::cout.rdbuf(previous);
 
     std::cout << "success: " << std::boolalpha << result.success << "\n";
     std::cout << "output: " << captured.str();
 
     // A failing script does not throw: the finished report is in result.error.
-    auto failed = cuff::CuffEngine::execute("print(1 / 0)\n", ".", options);
+    auto failed = cuff::Engine::execute("print(1 / 0)\n", ".", options);
     std::cout << "success: " << failed.success << "\n" << failed.error << "\n";
     return 0;
 }
@@ -249,26 +250,22 @@ success: false
 
 | Use | When |
 |---|---|
-| `CuffEngine::execute(source, scriptDir, options)` | You have a whole program and want it run once. A session is created for the call and discarded afterwards, so nothing the program declares outlives it. |
-| `cuff::Session` (header `engine/Session.h`) | The program arrives in pieces, as in a shell, a notebook or a game console, and what an earlier piece declared must be visible to the next. |
+| `Engine::execute(source, scriptDir, options)` | You have a whole program and want it run once. An engine is made for the call and discarded afterwards, so nothing the program declares outlives it. |
+| A `cuff::Engine` object and `engine.run(source, scriptDir)` | The program arrives in pieces, as in a shell, a notebook or a game console, and what an earlier piece declared must be visible to the next. Also whenever the host wants to call the program's functions, read and set its variables, or give it functions of its own. |
 
-Both report failures the same way, and neither throws for a failing script. `scriptDir` is the folder that `use ... from` and `DLC:filesystem` resolve against (unless `Options::rootDir` says otherwise); pass `"."` when the program has no file of its own. For a large program, pass the source as an rvalue (`std::move(text)`) to avoid a copy.
+Both report failures the same way, and neither throws for a failing script. `scriptDir` is the folder that `use ... from` and `DLC:filesystem` resolve against (unless `Options::rootDir` says otherwise); pass `"."` when the program has no file of its own. A `run` returns when the piece and every task it started ([Async functions and tasks](#async)) have finished. For a large program, pass the source as an rvalue (`std::move(text)`) to avoid a copy.
 
 ### Results and errors
 
-`execute` returns a `CuffEngine::Result`: `success` says whether the program finished, and `error` holds the full report when it did not. A `Session` returns a `Session::Outcome` with the same two fields. The report is the one `cuffc` prints, with the headline, the source line, a mark under the problem and a hint when there is one, but without the `ERROR:` prefix. The engine never writes it anywhere itself: print it where you want. Format nothing on your own, and every front end stays in step when the report changes.
+Every call returns an `Engine::Outcome`: `success` says whether it finished, `error` holds the full report when it did not, and `value` holds what `call` returned (and is `empty` otherwise). The report is the one `cuffc` prints, with the headline, the source line, a mark under the problem and a hint when there is one, but without the `ERROR:` prefix. The engine never writes it anywhere itself: print it where you want. Format nothing on your own, and every front end stays in step when the report changes. An error of `call` or `set` itself, such as a function that does not exist, has no source line to draw, so its headline has no position and the message follows it. Running out of memory is reported the same way, from memory that the engine set aside for it, and the engine can be used again afterwards.
 
 ### Output and input
 
 `print` writes to `std::cout` and `input` reads from `std::cin`. The engine has no stream of its own, so to capture the output or supply the input, replace the stream buffer around the call and put it back afterwards, as `host.cpp` does above. The same swap works for `std::cin` with a `std::istringstream`.
 
-### The host's locale
-
-The locale of your process does not reach a script. A host may call `setlocale` (many toolkits do at start-up), and numbers are still read and written with `.` as the decimal point, in source text, in `to_number`, in JSON and in output, and letter case is still the string library's, whatever the C library would do under that locale.
-
 ### Options
 
-`CuffEngine::Options` (the same struct a `Session` takes) holds the configuration of the interpreter:
+`Engine::Options` holds the configuration of the interpreter. Pass it to `execute` or to the `Engine` constructor:
 
 | Field | Meaning | Default |
 |---|---|---|
@@ -279,28 +276,30 @@ The locale of your process does not reach a script. A host may call `setlocale` 
 | `networkEnabled` | Whether `DLC:network` calls are allowed | `true` |
 | `allowPrivateNetworkTargets` | Whether `DLC:network` may reach loopback and private addresses | `false` |
 | `filesystemEnabled` | Whether `DLC:filesystem` calls are allowed | `true` |
+| `collectCycles` | Whether the engine frees, as a program runs, lists, maps and objects that refer only to each other. Off, they wait for `collectCycles()` or the engine's end | `true` |
+| `hardware` | The parts of the device that `DLC:hardware` reaches, each a function of the host ([below](#embedding-hardware)) | none |
 | `onCompiled` | A function that the engine calls with each piece of bytecode as it compiles it, for tools that want to show what a script turns into (`cuffc --bytecode` uses it) | none |
 
-A library that is switched off raises `DLCFeatureUnavailable` ({{error.DLCFeatureUnavailable}}) from every call to it. The two budget errors cannot be caught by `or_else`, so a script cannot swallow them.
+A library that is switched off raises `DLCFeatureUnavailable` ({{error.DLCFeatureUnavailable}}) from every call to it. The two budget errors cannot be caught by `or_else`, so a script cannot swallow them. `engine/EngineOptionsCli.h` has `parseEngineOption`, the function that fills an `Options` from `cuffc`'s command-line flags, so a host can accept the same flags with the same meaning.
 
-### Programs in pieces: Session
+### Programs in pieces
 
-A `Session` runs one piece at a time against the same interpreter, so variables, functions and loaded modules from earlier pieces are visible to later ones. `reset()` forgets everything and keeps the options. A session keeps every program it has run until it is reset, because the interpreter holds pointers into them, so a session that runs unbounded amounts of code should be reset now and then.
+An `Engine` is one program that can be run in pieces. Each `run` parses and executes a piece against the same interpreter, so the variables, functions, classes and loaded modules of earlier pieces are visible to later ones. `reset()` forgets everything the program declared and keeps the options and the host functions. An engine keeps every program it has run until it is reset, because the interpreter holds pointers into them, so its memory grows with the amount of code it has run, and an engine that lives long should be reset now and then.
 
 ```cpp
-// session.cpp
-#include "engine/Session.h"
+// engine.cpp
+#include "engine/CuffEngine.h"
 #include <iostream>
 
 int main()
 {
-    cuff::Session session; // default options
-    session.run("number n = 5\n");
-    auto a = session.run("print(n * 2)\n"); // sees n
+    cuff::Engine engine; // default options
+    engine.run("number n = 5\n");
+    auto a = engine.run("print(n * 2)\n"); // sees n
     std::cout << "piece ok: " << std::boolalpha << a.success << "\n";
 
-    session.reset(); // forget everything, keep the options
-    auto b = session.run("print(n)\n");
+    engine.reset(); // forget everything, keep the options
+    auto b = engine.run("print(n)\n");
     std::cout << "after reset ok: " << b.success << "\n";
     std::cout << b.error << "\n";
     return 0;
@@ -317,9 +316,100 @@ after reset ok: false
   |       ^ undefined variable 'n'
 ```
 
-### Parsing only, and threads
+### Calling the program, and giving it functions of your own
 
-`CuffEngine::run(source)` only parses. On success its result holds the syntax tree and the token streams, which is what tools such as `cuffc --ast` use. A `Session` is not shared between threads: give each thread its own. A script's own calls take frames of the engine's bytecode machine and no native stack, so a script can recurse to the call depth limit even on a thread with a small stack, and a runaway recursion ends with the catchable `StackOverflow` ({{error.StackOverflow}}). The engine measures the stack it really runs on only for the work that does nest inside it, such as an object's `to_str` that shows another object, and ends that with the same error instead of overflowing. Two small pieces of state are shared by every session in the process and are locked: the table of identifier names, and the random generator behind `DLC:random`, so `random_seed` in one session changes the sequence that the others see.
+The host can reach into the program it has run:
+
+- `engine.call("name", {arguments})` calls a function that an earlier piece declared and gives its value in `Outcome::value`. The arguments are checked as a script's call is checked, and default values fill in the missing ones. An `async` function runs to its end, as `await f()` does.
+- `engine.get("name")` gives the value of a top-level variable, or nothing (it is a `std::optional<Value>`). A list, map or object is shared with the program, so a change the host makes through it is seen by the program.
+- `engine.set("name", value)` assigns to a top-level variable as a script would, so its type and `constant` are respected; a name the program does not have is declared as `any`.
+- `engine.addFunction("name", function)` makes a function of the host callable from scripts as `name(...)`, from the next piece that runs, for as long as the engine lasts (a `reset()` keeps it). The function receives an `Args` and returns a `Value`. `Args` checks the arguments as a library function does, so a wrong call is reported at the call, naming the function and the argument: `expectCount(n)`, `number(i)`, `str(i)`, `list(i)`, `map(i)` and `boolean(i)`; `fail("message")` ends the call with an error that a script can catch with `or_else`. A host function must not wait, and it may not call `run`, `call` or `set` on the engine that is running it.
+
+```cpp
+// hostfn.cpp
+#include "engine/CuffEngine.h"
+#include <iostream>
+
+int main()
+{
+    cuff::Engine engine;
+
+    // A function of the host that scripts can call.
+    engine.addFunction("host_add", [](cuff::Args &args) -> cuff::Value {
+        args.expectCount(2);
+        return cuff::Value::makeNumber(args.number(0) + args.number(1));
+    });
+    engine.run("func twice(number n) do:\n    return host_add(n, n)\nend\nnumber answer = 1\n");
+
+    // The host calls a function of the program, and reads and sets its variables.
+    auto r = engine.call("twice", {cuff::Value::makeNumber(21)});
+    std::cout << std::boolalpha << r.success << " " << r.value.asNumber() << "\n";
+
+    engine.set("answer", cuff::Value::makeNumber(7));
+    auto answer = engine.get("answer");
+    std::cout << (answer ? answer->asNumber() : -1) << "\n";
+
+    auto bad = engine.run("print(host_add(1))\n"); // a wrong call is reported at the call
+    std::cout << bad.success << "\n" << bad.error << "\n";
+    return 0;
+}
+```
+
+```text vars
+true 42
+7
+false
+[{{error.ArgumentCountMismatch}}] Runtime Error at line 1, column 7
+  |
+1 | print(host_add(1))
+  |       ^^^^^^^^ host_add() expects 2 argument(s), got 1
+```
+
+A value is a `cuff::Value`. Make one with `Value::makeNumber(double)`, `makeStr(std::string)`, `makeBool(bool)`, `Value()` for `empty`, `makeList(...)` or `makeMap(...)`; ask it with `type()`, `isNumber()`, `isStr()`, `isBool()`, `isList()`, `isMap()`, `isObject()` and `isEmpty()`; read it with `asNumber()`, `asStr()`, `asBool()`, `asList()` and `asMap()`. Reading a value as a type it is not is a programming error, which a build without `NDEBUG` stops with an assertion. `toDisplayString()` is the text `print` writes.
+
+### Giving a program hardware {#embedding-hardware}
+
+`DLC:hardware` ([Modules and libraries](#dlc-hardware)) reaches only what the host supplies. `Options::hardware` is a `cuff::Hardware` struct with one `std::function` for each part: `battery`, `button`, `led`, `beep`, `screenText`, `serialWrite`, `serialRead`, `sensor`, `pinRead`, `pinWrite`, `pwm` and `analog`, and an optional `supports`. A part left empty is a part the device does not have, and a script that uses it gets `HardwareUnsupported` ({{error.HardwareUnsupported}}). The header `engine/DesktopHardware.h` has `desktopHardware()`, the parts of a desktop or laptop computer that `cuffc --hardware` gives.
+
+```cpp
+// hw.cpp
+#include "engine/CuffEngine.h"
+#include <iostream>
+
+int main()
+{
+    cuff::Engine::Options options;
+    options.hardware.battery = [] { return cuff::BatteryState{81, true}; };
+    options.hardware.led = [](int light, bool on) { std::cout << "light " << light << (on ? " on" : " off") << "\n"; };
+
+    cuff::Engine engine(options);
+    auto r = engine.run(
+        "use DLC:hardware\n"
+        "print(hw_supports(\"battery\"), hw_supports(\"beep\"))\n"
+        "map b = hw_battery()\n"
+        "print(b[\"level\"], b[\"charging\"])\n"
+        "hw_led(1, true)\n"
+        "hw_beep() or_else as Error e do:\n"
+        "    print(e.message)\n"
+        "end\n");
+    std::cout << std::boolalpha << r.success << "\n";
+    return 0;
+}
+```
+
+```text
+true false
+81 true
+light 1 on
+hw_beep() is not supported on this device
+true
+```
+
+### Parsing only, memory and threads
+
+`Engine::parse(source)` parses without running. On success its result holds the syntax tree and, if you ask, the token streams, and `Engine::dump(parsed)` prints what `cuffc --ast` prints. Lists, maps and objects are counted, and freed when their last holder lets go. Those that refer to each other in a cycle are found and freed by the engine while a program runs (`collectCycles()` does it at once), and what the host holds is never freed under it. A cycle that the host still holds when its engine is destroyed is not freed by anything, so empty the list before letting it go.
+
+An `Engine` cannot be copied, and it is not shared between threads: give each thread its own. A script's own calls take frames of the engine's bytecode machine and no native stack, so a script can recurse to the call depth limit even on a thread with a small stack, and a runaway recursion ends with the catchable `StackOverflow` ({{error.StackOverflow}}). The engine measures the stack it really runs on only for the work that does nest inside it, such as an object's `to_str` that shows another object, and ends that with the same error instead of overflowing. Two small pieces of state are shared by every engine in the process and are locked: the table of identifier names, and the random generator behind `DLC:random`, so `random_seed` in one engine changes the sequence that the others see.
 
 The [C++ API reference]({{site.blobUrl}}/docs/reference/cpp-api.md) lists every type and function, and [`examples/embedding`]({{site.blobUrl}}/examples/embedding/README.md) in the repository is a complete host program.
 
@@ -335,6 +425,7 @@ A program in Python, Go, Rust or any other language does not need bindings. Star
 | `--no-filesystem` | Switch `DLC:filesystem` off |
 | `--root <dir>` | Let `use ... from` load modules anywhere under this folder (by default, only from the script's own folder) |
 | `--allow-private-network` | Let `DLC:network` reach loopback and private addresses |
+| `--hardware` | Give `DLC:hardware` this computer's battery, temperature and beep |
 
 ```python
 import subprocess
@@ -371,6 +462,7 @@ If the scripts are yours, the defaults are fine. If they come from users, decide
 | A script that never ends | Run the module in a worker and terminate it on a timer | Set `timeoutMs` and `maxSteps` (`--timeout`, `--max-steps`) |
 | Reaching the network | A browser cannot open raw connections; the module cannot be configured | `networkEnabled = false`, and leave `allowPrivateNetworkTargets` off (`--no-network`) |
 | Reading and writing files | Only the in-memory file system exists; check the source for `use DLC:filesystem` if you want to refuse it | `filesystemEnabled = false`, and a narrow `rootDir` (`--no-filesystem`, `--root`) |
+| Reaching the device's parts | No part is supplied in a browser | Only the parts you put in `Options::hardware`; `--hardware` gives a computer's own |
 | Memory and CPU as a whole | The browser's limits, and the memory cap built into the module | Process-level limits from your operating system |
 
 The engine's own protections, such as the sandbox root, the blocked private network addresses and the budgets, reduce what a script can do, but they are not a promise that hostile code is harmless, so they belong together with limits that your platform applies to the process. The project's [security policy]({{site.blobUrl}}/SECURITY.md) says what the engine does and does not protect against.

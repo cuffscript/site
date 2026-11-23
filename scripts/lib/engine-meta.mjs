@@ -107,10 +107,12 @@ class EngineSource {
     }
 }
 
-/** reg["name"] = ...   plus   helper("name", ...) for lambdas that assign reg[<variable>]. */
+/** reg["name"] = ...   plus   helper("name", ...) for lambdas that assign reg[<variable>]   plus a table of {"name", function} pairs. */
 function functionNames(rawBody) {
     const body = stripComments(rawBody); // a commented-out registration is not a function
     const names = new Set([...body.matchAll(/reg\["([A-Za-z_]\w*)"\]\s*=/g)].map((m) => m[1]));
+    // DLC:hardware and the bit functions of DLC:math register from a table of {"name", function} pairs (a library function is always library_verb)
+    for (const m of body.matchAll(/\{\s*"([A-Za-z][A-Za-z0-9]*_\w+)"\s*,\s*&?[A-Za-z_][\w:]*\s*\}/g)) names.add(m[1]);
     for (const lm of body.matchAll(/auto\s+(\w+)\s*=\s*\[[^\]]*\]\s*\(/g)) {
         const helper = lm[1];
         const lambdaBody = braceBody(body, lm.index + lm[0].length);
