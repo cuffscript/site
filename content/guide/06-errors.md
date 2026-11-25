@@ -22,6 +22,44 @@ ERROR: [{{error.DivisionByZero}}] Runtime Error at line 3, column 9
 
 The tag in brackets, here {{error.DivisionByZero}}, identifies the error: `E`, then a category digit, a dash and a number. A program that ends with an error exits with a non-zero status. In this IDE the output panel shows the report in red and the run status changes to Error. Mistakes in the source itself (a stray character, a space before a colon, an unterminated text, a missing `end`, bad indentation) are found before the program runs; the engine reports them as a syntax error and the message says what is wrong.
 
+## Backtraces: the calls that led there {#backtraces}
+
+When the error happens inside a function, the report also lists the calls that led to it. The line `in divide, called from:` names the function where the error happened, and each line under it is one call, innermost first, with the line of the call and the function it was written in. The last line is the call at the top level of the program.
+
+```cuff error=DivisionByZero
+func divide(number a, number b) do:
+    return a / b
+end
+func average(list xs) do:
+    number total = 0
+    loop each number x in xs do:
+        total = total + x
+    end
+    return divide(total, length(xs))
+end
+print(average([]))
+```
+
+```text vars
+ERROR: [{{error.DivisionByZero}}] Runtime Error at line 2, column 14
+  |
+2 |     return a / b
+  |              ^ division by zero
+
+  in divide, called from:
+    line 9 in average: return divide(total, length(xs))
+    line 11: print(average([]))
+```
+
+Read it from the top: the division on line 2 failed, `divide` was called from line 9 inside `average`, and `average` was called from line 11 at the top level. The rules for how a call is shown:
+
+- A method is written `Class.method`. A function that comes from a module is written with its file, for example `half ('./m/half.cuff')`.
+- A function that calls itself is shown once, with how many more times the same call followed: `line 5 in count_down: return count_down(n - 1) (and 4 more times)`.
+- After the first 30 calls only the last 10 are kept, and a line such as `... 961 more calls` says how many were left out between them.
+- An error at the top level has no backtrace, because no call led to it.
+- An error inside a task goes on from the `await` that received it ([Async functions and tasks](#async)).
+- An error raised again with `fail err` keeps the calls it first came out of, and goes on from the `fail`.
+
 ## Recovering with or_else {#or-else}
 
 Instead of try-catch, you attach an `or_else` handler after a statement that might fail. It goes on the same line as the last token of the statement, or after the `end` of a block. If the statement finishes normally, the handler is skipped. If it raises an error that can be caught, the handler runs and the program continues after it.
@@ -70,6 +108,7 @@ Remember that not finding something is usually *not* an error. A failed `find` o
 | `code` | `str` | The error code, such as the one in the report above |
 | `line`, `column` | `number` | Where it happened |
 | `hint` | `str` | The engine's suggestion, or an empty text |
+| `backtrace` | `list` | The calls the error came out of, innermost first (see below). Empty for an error that was never raised |
 
 ```cuff
 number n = to_number("abc") or_else as Error err do:
@@ -81,6 +120,37 @@ print(n)
 ```
 
 `Error("text")` creates an error object of your own, and its `to_str()` is the code followed by the message.
+
+`err.backtrace` holds the same calls as the report in [Backtraces](#backtraces): a list with one map per call, innermost first. Each map has `function` (empty at the top level), `file` (empty for the program itself), `line`, `column`, and `repeated`, the number of times more that the same call follows it.
+
+```cuff
+class Account do:
+    number balance = 0
+    func withdraw(number amount) do:
+        if amount > balance do:
+            fail "insufficient funds"
+        end
+        balance = balance - amount
+    end
+end
+func pay(Account a, number n) do:
+    a.withdraw(n)
+end
+Account acc = Account()
+pay(acc, 5) or_else as Error err do:
+    loop each map call in err.backtrace do:
+        print(call["function"], call["line"])
+    end
+end
+```
+
+```output
+Account.withdraw 4
+pay 11
+ 14
+```
+
+The last line is the top-level call: its `function` is empty, so only the line number shows.
 
 ## Raising your own errors {#fail}
 
@@ -105,7 +175,7 @@ end
 cannot divide by zero
 ```
 
-To tell kinds of errors apart, make a class that `extends Error` and test it with `isa`. There is no separate branch for each kind of error; one handler inspects the error and decides. A class of your own can carry extra fields.
+To tell kinds of errors apart, make a class that `extends Error` and test it with `isa`. There is no separate branch for each kind of error; one handler inspects the error and decides. A class of your own can carry extra fields, but it cannot declare a field that `Error` already has (`message`, `code`, `line`, `column`, `hint` or `backtrace`): that is an error ({{error.DuplicateMember}}).
 
 ```cuff
 class ValidationError extends Error do:

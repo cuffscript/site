@@ -52,7 +52,7 @@ true
 
 ### Errors you can handle
 
-A statement that fails can be recovered on the spot with `or_else`, and your own program can raise errors with `fail`. When an error does stop a program, the report shows the line, points at the problem and often says how to fix it.
+A statement that fails can be recovered on the spot with `or_else`, and your own program can raise errors with `fail`. When an error does stop a program, the report shows the line, points at the problem, lists the calls that led to it and often says how to fix it.
 
 ```cuff
 number n = to_number("abc") or_else do:

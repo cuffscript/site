@@ -253,11 +253,11 @@ success: false
 | `Engine::execute(source, scriptDir, options)` | You have a whole program and want it run once. An engine is made for the call and discarded afterwards, so nothing the program declares outlives it. |
 | A `cuff::Engine` object and `engine.run(source, scriptDir)` | The program arrives in pieces, as in a shell, a notebook or a game console, and what an earlier piece declared must be visible to the next. Also whenever the host wants to call the program's functions, read and set its variables, or give it functions of its own. |
 
-Both report failures the same way, and neither throws for a failing script. `scriptDir` is the folder that `use ... from` and `DLC:filesystem` resolve against (unless `Options::rootDir` says otherwise); pass `"."` when the program has no file of its own. A `run` returns when the piece and every task it started ([Async functions and tasks](#async)) have finished. For a large program, pass the source as an rvalue (`std::move(text)`) to avoid a copy.
+Both report failures the same way, and neither throws for a failing script. `scriptDir` is the folder that `use ... from` and `DLC:filesystem` resolve against (unless `Options::rootDir` says otherwise); pass `"."` when the program has no file of its own. `scriptDir` and `rootDir` are UTF-8, like every string the engine takes, so a folder with a Korean or accented name works on Windows too; a string that is not valid UTF-8 is read in the system's ANSI code page, so a host that already passes ANSI paths keeps working. A `run` returns when the piece and every task it started ([Async functions and tasks](#async)) have finished. For a large program, pass the source as an rvalue (`std::move(text)`) to avoid a copy.
 
 ### Results and errors
 
-Every call returns an `Engine::Outcome`: `success` says whether it finished, `error` holds the full report when it did not, and `value` holds what `call` returned (and is `empty` otherwise). The report is the one `cuffc` prints, with the headline, the source line, a mark under the problem and a hint when there is one, but without the `ERROR:` prefix. The engine never writes it anywhere itself: print it where you want. Format nothing on your own, and every front end stays in step when the report changes. An error of `call` or `set` itself, such as a function that does not exist, has no source line to draw, so its headline has no position and the message follows it. Running out of memory is reported the same way, from memory that the engine set aside for it, and the engine can be used again afterwards.
+Every call returns an `Engine::Outcome`: `success` says whether it finished, `error` holds the full report when it did not, and `value` holds what `call` returned (and is `empty` otherwise). The report is the one `cuffc` prints, with the headline, the source line, a mark under the problem, a hint when there is one and, for an error inside a function, the calls that led to it ([Backtraces](#backtraces)), but without the `ERROR:` prefix. The engine never writes it anywhere itself: print it where you want. Format nothing on your own, and every front end stays in step when the report changes. An error of `call` or `set` itself, such as a function that does not exist, has no source line to draw, so its headline has no position and the message follows it. Running out of memory is reported the same way, from memory that the engine set aside for it, and the engine can be used again afterwards.
 
 ### Output and input
 
@@ -404,6 +404,16 @@ light 1 on
 hw_beep() is not supported on this device
 true
 ```
+
+### Leaving libraries out {#embedding-exclude}
+
+A device that has no use for `DLC:network` or `DLC:hardware` can build the engine without them. Define `CUFF_EXCLUDE_DLC_<NAME>` for each library to leave out, in capitals, on the compiler's command line:
+
+```bash
+g++ -std=c++17 -DCUFF_EXCLUDE_DLC_NETWORK -DCUFF_EXCLUDE_DLC_HARDWARE -I/path/to/cuffscript -o host host.cpp
+```
+
+A library that is left out is unknown to that build, exactly as a name that never existed: `use DLC:network` is {{error.UnknownDLC}}, with the libraries that are there in its hint, and its functions and methods do not exist. Its code is not in the binary. `Engine::Options` keeps every field in every build, so the same host source compiles against either; a field of a library that is not there is simply not read. `DLC:convert` cannot be left out, because its functions are built-ins, and a name that is not one of the libraries that can be left out stops the build. The same choice is made for the `cuffc` program with `make EXCLUDE_DLC="network hardware"`, and what each library costs in size is listed in the [building notes]({{site.blobUrl}}/docs/contributing/building.md#leaving-libraries-out).
 
 ### Parsing only, memory and threads
 
