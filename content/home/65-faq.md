@@ -55,11 +55,11 @@ DLC is the name for the built-in libraries: {{engine.dlcNames}}. You switch one 
 
 ### Can I use it inside my own application?
 
-Yes. The engine is a library: use the `cuffscript-wasm` package from JavaScript or TypeScript, or the `CuffEngine` class from C++. The [embedding guide](/guide/#embedding) walks through both, with complete examples. The host decides what a program may touch. For example `cuffc` can switch the network and file libraries off (`--no-network`, `--no-filesystem`) and give a program a step or time budget (`--max-steps`, `--timeout`).
+Yes. The engine is a library: use the `cuffscript-wasm` package from JavaScript or TypeScript, or the `cuff::Engine` class from C++. The [embedding guide](/guide/#embedding) walks through both, with complete examples. The host decides what a program may touch. For example `cuffc` can switch the network and file libraries off (`--no-network`, `--no-filesystem`) and give a program a step or time budget (`--max-steps`, `--timeout`).
 
 ### Is it safe to run a program I did not write?
 
-CuffScript is built so that a program can do only what its host allows. File access is confined to one folder and cannot escape it with `..` or links, network requests to local and private addresses are blocked, and an execution budget stops runaway loops. In the browser IDE the file library is blocked and the browser stops raw network access. Treat these as protections and not as a guarantee, and read the project's [security policy]({{site.blobUrl}}/SECURITY.md) before you rely on them for untrusted code.
+CuffScript is built so that a program can do only what its host allows. File access is confined to one folder and cannot escape it with `..` or links, network requests to local and private addresses are blocked, and an execution budget that the host sets stops runaway loops. In the browser IDE the file library is blocked and the browser stops raw network access. Treat these as protections and not as a guarantee, and read the project's [security policy]({{site.blobUrl}}/SECURITY.md) before you rely on them for untrusted code.
 
 ### Is it free to use?
 

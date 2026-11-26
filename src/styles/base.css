@@ -1036,3 +1036,243 @@ pre {
 .site-footer a {
     color: var(--text-muted);
 }
+/* ---------------------------------------------------------------------------
+   Error reference page (/errors/)
+   Prose inside an entry reuses the guide's rules through .guide-section.
+   --------------------------------------------------------------------------- */
+.err-shell {
+    max-width: 860px;
+    margin: 0 auto;
+    padding: 32px 24px 96px;
+}
+
+.err-article {
+    max-width: none;
+}
+
+.err-tools {
+    position: sticky;
+    top: 56px;
+    z-index: 5;
+    margin: 0 -8px 24px;
+    padding: 12px 8px 10px;
+    background: var(--bg);
+    border-bottom: 1px solid var(--border);
+}
+
+.err-search {
+    width: 100%;
+    box-sizing: border-box;
+    padding: 10px 14px;
+    font: inherit;
+    font-size: 15px;
+    color: var(--text);
+    background: var(--bg-elevated);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+}
+
+.err-search:focus {
+    outline: 2px solid var(--accent);
+    outline-offset: -1px;
+    border-color: transparent;
+}
+
+.err-chips {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    margin-top: 10px;
+}
+
+.err-chip {
+    font: inherit;
+    font-size: 12.5px;
+    padding: 4px 10px;
+    color: var(--text-muted);
+    background: transparent;
+    border: 1px solid var(--border);
+    border-radius: 999px;
+    cursor: pointer;
+}
+
+.err-chip span {
+    color: var(--text-faint);
+    margin-left: 2px;
+}
+
+.err-chip:hover {
+    color: var(--text);
+    border-color: var(--text-faint);
+}
+
+.err-chip[aria-pressed="true"] {
+    color: var(--accent-fg);
+    background: var(--accent);
+    border-color: var(--accent);
+}
+
+.err-chip[aria-pressed="true"] span {
+    color: inherit;
+    opacity: 0.8;
+}
+
+.err-status {
+    min-height: 1.2em;
+    margin: 8px 0 0;
+    font-size: 12.5px;
+    color: var(--text-muted);
+}
+
+.err-group {
+    margin-bottom: 36px;
+}
+
+.err-count {
+    margin-left: 6px;
+    font-size: 13px;
+    font-weight: 400;
+    color: var(--text-faint);
+}
+
+.err-entry {
+    padding: 18px 0 6px;
+    border-top: 1px solid var(--border);
+    scroll-margin-top: 150px;
+}
+
+.err-entry:target {
+    background: var(--accent-soft);
+    margin: 0 -12px;
+    padding: 18px 12px 6px;
+    border-radius: var(--radius);
+    border-top-color: transparent;
+}
+
+.err-entry[hidden],
+.err-group[hidden] {
+    display: none;
+}
+
+.err-head {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 6px 16px;
+}
+
+.err-head h3 {
+    margin: 0;
+    font-size: 16px;
+    display: flex;
+    flex-wrap: wrap;
+    align-items: baseline;
+    gap: 4px 12px;
+}
+
+.err-code {
+    font-family: var(--font-mono);
+    font-size: 15px;
+    color: var(--accent);
+    text-decoration: none;
+}
+
+.err-code:hover {
+    text-decoration: underline;
+}
+
+.err-name {
+    font-weight: 600;
+}
+
+.err-tags {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+}
+
+.err-tag {
+    font-size: 11.5px;
+    padding: 2px 8px;
+    color: var(--text-muted);
+    background: var(--bg-elevated);
+    border: 1px solid var(--border);
+    border-radius: 999px;
+}
+
+.err-tag-ok {
+    color: var(--accent);
+    background: var(--accent-soft);
+    border-color: transparent;
+}
+
+.err-tag-stop {
+    color: var(--danger);
+    background: var(--danger-soft);
+    border-color: transparent;
+}
+
+.err-tag-muted {
+    color: var(--text-faint);
+}
+
+.guide-section .err-meaning,
+.err-entry .err-meaning {
+    margin: 8px 0 4px;
+    font-size: 14.5px;
+    line-height: 1.7;
+}
+
+.err-how h4 {
+    margin: 12px 0 2px;
+    font-size: 12px;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    color: var(--text-muted);
+}
+
+.err-how p {
+    margin: 4px 0 8px;
+}
+
+.err-example {
+    margin: 8px 0 12px;
+}
+
+.err-example > summary {
+    cursor: pointer;
+    font-size: 13px;
+    color: var(--text-muted);
+}
+
+.err-reserved-group {
+    margin-top: 8px;
+}
+
+.err-reserved-group > summary {
+    cursor: pointer;
+    font-size: 14px;
+    color: var(--text-muted);
+    padding: 8px 0;
+}
+
+.err-empty {
+    color: var(--text-muted);
+    font-size: 14.5px;
+    padding: 24px 0;
+}
+
+.err-empty[hidden] {
+    display: none;
+}
+
+@media (max-width: 640px) {
+    .err-shell {
+        padding: 20px 16px 72px;
+    }
+
+    .err-tools {
+        top: 52px;
+    }
+}

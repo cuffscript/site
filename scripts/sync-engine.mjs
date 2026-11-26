@@ -1,5 +1,5 @@
 #!/usr/bin/env node
-// Regenerates src/generated/engine-meta.json from a CuffScript engine checkout.
+// Regenerates src/generated/engine-meta.json and engine-docs.json from a CuffScript engine checkout.
 //
 //   node scripts/sync-engine.mjs [engine-dir] [--cuffc path] [--build] [--check] [--clone[=ref]]
 //
@@ -15,10 +15,12 @@ import path from "node:path";
 import { fileURLToPath } from "node:url";
 import { spawnSync } from "node:child_process";
 import { extractEngineMeta, verifyAgainstBinary, describeDiff } from "./lib/engine-meta.mjs";
+import { extractEngineDocs, describeDocsDiff } from "./lib/engine-docs.mjs";
 import { engineCandidates } from "./lib/engine-dir.mjs";
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 const outFile = path.join(root, "src/generated/engine-meta.json");
+const docsFile = path.join(root, "src/generated/engine-docs.json");
 const siteConfig = JSON.parse(fs.readFileSync(path.join(root, "src/siteConfig.json"), "utf8"));
 
 const args = process.argv.slice(2);
@@ -90,22 +92,46 @@ if (cuffc) {
     console.warn("warning: no cuffc binary found — function names are NOT verified against the real engine.\n         Build it (make) and pass --cuffc, or use --build.");
 }
 
+// What the engine's documentation says about errors and limits (the site's error page and limits table).
+let docs = null;
+if (cuffc) {
+    try {
+        docs = extractEngineDocs(engineDir, meta.errorCodes, path.resolve(cuffc));
+    } catch (err) {
+        fail(err.message);
+    }
+    console.log(`read errors.md and limits.md: ${docs.errors.length} errors (${docs.errors.filter((e) => e.report).length} with a report from cuffc), ${docs.limits.length} limits`);
+} else {
+    console.warn("warning: no cuffc binary found — the error page needs the real report of each example, so engine-docs.json is NOT updated.");
+}
+const nextDocs = docs ? `${JSON.stringify(docs, null, 2)}\n` : null;
+const prevDocs = fs.existsSync(docsFile) ? fs.readFileSync(docsFile, "utf8") : null;
+const docsDiff = nextDocs ? describeDocsDiff(prevDocs ? JSON.parse(prevDocs) : null, docs) : [];
+
 const next = `${JSON.stringify(meta, null, 2)}\n`;
 const prev = fs.existsSync(outFile) ? fs.readFileSync(outFile, "utf8") : null;
 const diff = prev ? describeDiff(JSON.parse(prev), meta) : ["(no previous file)"];
 
 if (flag("--check")) {
-    if (prev === next) {
-        console.log(`engine-meta.json is up to date with engine ${meta.engineVersion}`);
+    if (prev === next && (nextDocs === null || prevDocs === nextDocs)) {
+        console.log(`engine-meta.json and engine-docs.json are up to date with engine ${meta.engineVersion}`);
         process.exit(0);
     }
-    console.error("src/generated/engine-meta.json is OUT OF DATE relative to the engine:");
-    for (const l of diff) console.error(`  ${l}`);
+    console.error("src/generated/ is OUT OF DATE relative to the engine:");
+    for (const l of [...diff, ...docsDiff]) console.error(`  ${l}`);
     console.error("Run: node scripts/sync-engine.mjs <engine-dir>   then review content/ for anything affected.");
     process.exit(1);
 }
 
 fs.mkdirSync(path.dirname(outFile), { recursive: true });
 fs.writeFileSync(outFile, next);
+if (nextDocs !== null) {
+    fs.writeFileSync(docsFile, nextDocs);
+    if (prevDocs !== nextDocs) {
+        console.log(`wrote ${path.relative(root, docsFile)}`);
+        for (const l of docsDiff.slice(0, 30)) console.log(`  ${l}`);
+        if (docsDiff.length > 30) console.log(`  ... and ${docsDiff.length - 30} more`);
+    }
+}
 console.log(prev === next ? `engine-meta.json unchanged (engine ${meta.engineVersion})` : `wrote ${path.relative(root, outFile)} (engine ${meta.engineVersion})`);
 if (prev !== next) for (const l of diff) console.log(`  ${l}`);

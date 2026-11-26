@@ -54,7 +54,7 @@ ERROR: [{{error.DivisionByZero}}] Runtime Error at line 2, column 14
 Read it from the top: the division on line 2 failed, `divide` was called from line 9 inside `average`, and `average` was called from line 11 at the top level. The rules for how a call is shown:
 
 - A method is written `Class.method`. A function that comes from a module is written with its file, for example `half ('./m/half.cuff')`.
-- A function that calls itself is shown once, with how many more times the same call followed: `line 5 in count_down: return count_down(n - 1) (and 4 more times)`.
+- A function that calls itself is shown once, with a count instead of one line per call: `line 5 in count_down: return count_down(n - 1) (and 4 more times)`. When the error is raised by that repeated call itself, as in runaway recursion, the count is the number of calls: `line 2 in down: return down(n + 1) (999 times)`.
 - After the first 30 calls only the last 10 are kept, and a line such as `... 961 more calls` says how many were left out between them.
 - An error at the top level has no backtrace, because no call led to it.
 - An error inside a task goes on from the `await` that received it ([Async functions and tasks](#async)).

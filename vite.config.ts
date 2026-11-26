@@ -36,6 +36,7 @@ export default defineConfig({
                 home: htmlEntry("index.html"),
                 ide: htmlEntry("ide/index.html"),
                 guide: htmlEntry("guide/index.html"),
+                errors: htmlEntry("errors/index.html"),
             },
         },
     },

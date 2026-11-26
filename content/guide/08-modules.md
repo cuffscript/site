@@ -186,6 +186,8 @@ true true ababab
 | `random_shuffle(xs)` | A new list with the same elements in random order |
 | `random_seed(n)` | Starts the sequence from the whole number `n`, so the numbers that follow can be repeated |
 
+There is one generator for the whole process, and it is **not secure**: never use it for passwords, tokens or keys.
+
 ```cuff
 use DLC:time, DLC:random
 
@@ -450,6 +452,8 @@ A field that holds the separator, a quote or a line break is written between quo
 ### `DLC:hash` {#dlc-hash}
 
 Hashes, message authentication codes, encodings and checksums, so a program can fingerprint data, sign it, or exchange it with other systems. A function that takes data takes a `str` and uses its UTF-8 bytes. A hash comes back as lowercase hexadecimal text.
+
+`DLC:hash` is **not an audited cryptographic library**. Its functions are checked against the published test vectors, but nobody has reviewed them as security code, it makes no random numbers (a salt or a key has to come from elsewhere), and only `hash_equal` compares in constant time.
 
 | Function | Result |
 |---|---|

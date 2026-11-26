@@ -12,6 +12,7 @@ import fs from "node:fs";
 import path from "node:path";
 import { renderMarkdown, parseFrontmatter, escapeText, renderInline, ContentError } from "./markdown.mjs";
 import { errorTagNumber } from "./errorTag.mjs";
+import { ERROR_CATEGORIES } from "./engine-docs.mjs";
 
 const ERROR_RANGES = [
     [1000, "Lexical"],
@@ -58,7 +59,9 @@ export function loadContext(root) {
     const meta = readJson(path.join(root, "src/generated/engine-meta.json"));
     const policy = readJson(path.join(root, "src/engine/webPolicy.json"), { blockedDlcs: {} });
     const site = readJson(path.join(root, "src/siteConfig.json"));
-    return { root, meta, policy, site };
+    // What the engine's docs say about errors and limits (see scripts/lib/engine-docs.mjs).
+    const docs = readJson(path.join(root, "src/generated/engine-docs.json"), { errors: [], limits: [] });
+    return { root, meta, policy, site, docs };
 }
 
 function dlcNames(meta) {
@@ -128,10 +131,95 @@ function errorCodesHtml(ctx) {
     );
 }
 
+/**
+ * Links in the engine's own docs are relative to docs/reference/. A link to an error code stays on
+ * this site (the error page); anything else points at the file in the repository.
+ */
+function engineDocLinks(md, ctx) {
+    const blob = repoUrls(ctx.site).blobUrl;
+    return md.replace(/\]\(([^)\s#]+)(#[^)\s]*)?\)/g, (all, target, hash = "") => {
+        if (/^[a-z][a-z0-9+.-]*:/i.test(target)) return all;
+        const resolved = path.posix.normalize(path.posix.join("docs/reference", target));
+        if (resolved === "docs/reference/errors.md" && /^#e\d+-\d{3}$/i.test(hash)) return `](/errors/${hash.toUpperCase()})`;
+        return `](${blob}/${resolved}${hash})`;
+    });
+}
+
+function limitsTableHtml(ctx) {
+    const rows = ctx.docs.limits
+        .map((l) => {
+            const raises = l.raises ? `<a href="/errors/#${l.raises}">${code(l.raises)}</a>` : "";
+            return `<tr><td>${renderInline(l.name)}</td><td class="num">${renderInline(l.value)}</td><td>${raises}</td><td>${renderInline(engineDocLinks(l.description, ctx))}</td></tr>`;
+        })
+        .join("");
+    return `<div class="table-scroll"><table class="ref-table"><thead><tr><th>Limit</th><th>Value</th><th>Raises</th><th>What it is</th></tr></thead><tbody>${rows}</tbody></table></div>`;
+}
+
+function errorEntryHtml(e, ctx, vars) {
+    const opts = { file: "src/generated/engine-docs.json", firstLine: 1, vars, wrapTables: "table-scroll" };
+    const state = e.reserved
+        ? '<span class="err-tag err-tag-muted">never raised</span>'
+        : e.catchable
+          ? '<span class="err-tag err-tag-ok">or_else can catch it</span>'
+          : '<span class="err-tag err-tag-stop">ends the program</span>';
+    const parts = [
+        `<section class="err-entry${e.reserved ? " err-reserved" : ""}" id="${e.code}" data-category="${escapeText(e.category)}">`,
+        `<header class="err-head"><h3><a class="err-code" href="#${e.code}">${e.code}</a><span class="err-name">${escapeText(e.name)}</span></h3>` +
+            `<span class="err-tags"><span class="err-tag">${escapeText(e.category)}</span>${state}</span></header>`,
+        `<p class="err-meaning">${renderInline(engineDocLinks(e.meaning, ctx))}</p>`,
+    ];
+    if (e.detail) {
+        parts.push(`<div class="err-how"><h4>Cause and fix</h4>${renderMarkdown(engineDocLinks(e.detail, ctx), opts).html}</div>`);
+    }
+    if (e.example) {
+        const fence = "```";
+        const md = `${fence}cuff fragment\n${e.example}\n${fence}\n\n${fence}text\n${e.report}\n${fence}`;
+        parts.push(`<details class="err-example"><summary>A program that raises it, and what the engine prints</summary>${renderMarkdown(md, opts).html}</details>`);
+    }
+    parts.push("</section>");
+    return parts.join("\n");
+}
+
+export function buildErrorsPage(ctx) {
+    const vars = buildVars(ctx);
+    const errors = ctx.docs.errors;
+    if (errors.length === 0) throw new Error("src/generated/engine-docs.json has no errors: run node scripts/sync-engine.mjs <engine-dir>");
+    const categories = Object.values(ERROR_CATEGORIES).filter((c) => errors.some((e) => e.category === c));
+    const raised = errors.filter((e) => !e.reserved);
+    const reserved = errors.filter((e) => e.reserved);
+
+    const chips =
+        `<button type="button" class="err-chip" data-category="" aria-pressed="true">All <span>${raised.length}</span></button>` +
+        categories
+            .map((c) => {
+                const n = raised.filter((e) => e.category === c).length;
+                return n ? `<button type="button" class="err-chip" data-category="${escapeText(c)}" aria-pressed="false">${escapeText(c)} <span>${n}</span></button>` : "";
+            })
+            .join("");
+
+    const groups = categories
+        .map((c) => {
+            const list = raised.filter((e) => e.category === c);
+            if (list.length === 0) return "";
+            const id = `cat-${c.toLowerCase().replace(/\s+/g, "-")}`;
+            return `<section class="err-group guide-section" id="${id}" data-category="${escapeText(c)}"><h2>${escapeText(c)} errors <span class="err-count">${list.length}</span></h2>\n${list.map((e) => errorEntryHtml(e, ctx, vars)).join("\n")}\n</section>`;
+        })
+        .join("\n");
+
+    const reservedHtml = reserved.length
+        ? `<details class="err-reserved-group guide-section" id="never-raised"><summary>Codes the engine never raises (${reserved.length})</summary>` +
+          `<p>These numbers are reserved. Most syntax problems, for example, are reported as <a href="#E2-001">E2-001</a>, whose message says what is wrong.</p>\n` +
+          `${reserved.map((e) => errorEntryHtml(e, ctx, vars)).join("\n")}</details>`
+        : "";
+
+    return { total: errors.length, raised: raised.length, chipsHtml: chips, listHtml: `${groups}\n${reservedHtml}` };
+}
+
 function makeInclude(ctx) {
     const table = {
         "engine:dlc-reference": () => dlcReferenceHtml(ctx),
         "engine:error-codes": () => errorCodesHtml(ctx),
+        "engine:limits": () => limitsTableHtml(ctx),
     };
     return (name) => (table[name] ? table[name]() : undefined);
 }
@@ -291,6 +379,9 @@ const PLACEHOLDERS = {
     "<!--@guide:article-->": (b) => b.guide.articleHtml,
     "<!--@home:toc-->": (b) => b.home.tocHtml,
     "<!--@home:cards-->": (b) => b.home.cardsHtml,
+    "<!--@errors:filters-->": (b) => b.errors.chipsHtml,
+    "<!--@errors:list-->": (b) => b.errors.listHtml,
+    "<!--@errors:count-->": (b) => String(b.errors.raised),
 };
 
 /** Replaces the @-placeholders in a page shell. Builds lazily: only what is used. */
@@ -303,6 +394,9 @@ export function applyContent(html, ctx) {
         },
         get home() {
             return (built.home ??= buildHome(ctx, lazy.guide));
+        },
+        get errors() {
+            return (built.errors ??= buildErrorsPage(ctx));
         },
     };
     let out = html;

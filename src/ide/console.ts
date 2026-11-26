@@ -16,11 +16,24 @@ export class ConsoleView {
         this.renderEmpty();
     }
 
-    private appendLine(text: string, className?: string): void {
+    private appendLine(text: string, className?: string, linkErrorCode = false): void {
         if (this.lineCount === 0) this.container.innerHTML = "";
         const line = document.createElement("div");
         if (className) line.className = className;
-        line.textContent = text.length > 0 ? text : "\u00A0";
+        const tag = linkErrorCode ? /\[(E\d+-\d{3})\]/.exec(text) : null;
+        if (tag) {
+            // "ERROR: [E4-006] Runtime Error ..." -> the code becomes a link to its page in the error reference.
+            const link = document.createElement("a");
+            link.className = "console-error-link";
+            link.href = `/errors/#${tag[1]}`;
+            link.target = "_blank";
+            link.rel = "noreferrer";
+            link.title = "What does this error mean?";
+            link.textContent = tag[0];
+            line.append(text.slice(0, tag.index), link, text.slice(tag.index + tag[0].length));
+        } else {
+            line.textContent = text.length > 0 ? text : "\u00A0";
+        }
         this.container.appendChild(line);
         this.lineCount += 1;
         this.container.scrollTop = this.container.scrollHeight;
@@ -31,7 +44,7 @@ export class ConsoleView {
     }
 
     stderr(text: string): void {
-        this.appendLine(text, "console-line-stderr");
+        this.appendLine(text, "console-line-stderr", true);
     }
 
     status(text: string): void {

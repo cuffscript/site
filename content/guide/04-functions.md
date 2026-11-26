@@ -34,7 +34,7 @@ These are the rules for declaring and calling:
 - **Hoisting.** Declarations are processed before the program runs, so a function may be called on a line above the one that declares it. Two functions with the same name at the top level of one file are a syntax error (`DuplicateDeclaration` ({{error.DuplicateDeclaration}})); a module may still bring in a function whose name the program already has. The body of a block may be empty and written on one line for every kind of block (`func later() do: end`).
 - **Argument count.** A call must pass at least as many arguments as the function has parameters without a default, and at most as many as it has parameters; otherwise the error is `ArgumentCountMismatch` ({{error.ArgumentCountMismatch}}). There are no variable-length parameter lists.
 - **Not values.** A function is not a value: it cannot be stored in a variable, passed to another function, returned or compared. There are no closures. A function that has the name of a built-in function replaces that built-in for the whole program.
-- **Recursion.** A function can call itself. Calls may nest only so deep (1,000 levels), and unbounded recursion stops with `StackOverflow` ({{error.StackOverflow}}).
+- **Recursion.** A function can call itself. Calls may nest only so deep (the call depth is one of the engine's [limits](#limits)), and unbounded recursion stops with `StackOverflow` ({{error.StackOverflow}}).
 
 ```cuff
 print(double(21))

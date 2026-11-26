@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>CuffScript — Error reference</title>
+    <meta name="description" content="Look up any CuffScript error: what its code and message mean, what usually causes it, and how to fix it." />
+    <!-- Open Graph -->
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="CuffScript — Error reference" />
+    <meta property="og:description" content="Look up any CuffScript error: what its code and message mean, what usually causes it, and how to fix it." />
+    <meta property="og:site_name" content="CuffScript" />
+    <meta property="og:url" content="https://cuffscript.pages.dev/errors/" />
+    <meta property="og:image" content="https://cuffscript.pages.dev/og-image.png" />
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content="CuffScript — Error reference" />
+    <meta name="twitter:description" content="Look up any CuffScript error: what its code and message mean, what usually causes it, and how to fix it." />
+    <meta name="twitter:image" content="https://cuffscript.pages.dev/og-image.png" />
+    <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+</head>
+
+<body>
+    <div class="app-shell">
+        <div id="site-header-root"></div>
+
+        <main class="err-shell">
+            <article class="guide-article err-article">
+                <h1>Error reference</h1>
+                <p class="guide-lead">Paste an error code such as <code>E4-006</code>, its name, or a few words of the
+                    message, and find what it means and how to fix it. There are <!--@errors:count--> errors a program
+                    can actually raise. How to read a report is explained in the
+                    <a href="/guide/#error-report">guide</a>.</p>
+
+                <div class="err-tools" role="search">
+                    <input id="err-search" class="err-search" type="search" autocomplete="off" spellcheck="false"
+                        placeholder="E4-006, DivisionByZero, division by zero…" aria-label="Search errors" />
+                    <div class="err-chips" id="err-chips" role="group" aria-label="Filter by kind of error">
+                        <!--@errors:filters-->
+                    </div>
+                    <p class="err-status" id="err-status" aria-live="polite"></p>
+                </div>
+
+                <div id="err-list">
+                    <!--@errors:list-->
+                </div>
+                <p class="err-empty" id="err-empty" hidden>No error matches. Try the code alone (<code>E4-006</code>),
+                    or fewer words from the message.</p>
+            </article>
+        </main>
+    </div>
+
+    <script type="module" src="/src/errors.ts"></script>
+</body>
+
+</html>

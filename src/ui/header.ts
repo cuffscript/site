@@ -1,7 +1,7 @@
 import { icons } from "./icons";
 import { initColorScheme, toggleColorScheme } from "./colorScheme";
 
-export type NavKey = "home" | "ide" | "guide";
+export type NavKey = "home" | "ide" | "guide" | "errors";
 
 const BRAND_MARK = `<svg viewBox="0 0 512 512" xmlns="http://www.w3.org/2000/svg">
   <path d="M43.294 55a24.745 23.277-44.124 0 1 25.468-24h410a16.497 15.518-44.124 0 1 15.021 16l-25.077 410a24.745 23.277-44.124 0 1-25.468 24h-410a16.497 15.518-44.124 0 1-15.021-16Z" fill="#008f6b"/>
@@ -25,6 +25,7 @@ export function renderHeader(active: NavKey): void {
       <nav class="site-nav">
         <a href="/ide/"${navAttr("ide", active)}>IDE</a>
         <a href="/guide/"${navAttr("guide", active)}>Guide</a>
+        <a href="/errors/"${navAttr("errors", active)}>Errors</a>
       </nav>
       <div class="header-spacer"></div>
       <div class="header-actions">

@@ -8,7 +8,7 @@
 //   2. every IDE example in src/examples runs cleanly
 //   3. every library function mentioned in the content (math_*, str_*, ...) exists
 //   4. src/engine/webPolicy.json only blocks libraries that exist
-//   5. (with --engine) src/generated/engine-meta.json is still up to date
+//   5. (with --engine) src/generated/engine-meta.json and engine-docs.json are still up to date
 //
 // How a code block is judged is set in its fence info string:
 //   ```cuff                  must run with exit code 0 and print nothing to stderr
@@ -27,6 +27,7 @@ import { fileURLToPath } from "node:url";
 import { spawnSync } from "node:child_process";
 import { extractCodeBlocks, parseFrontmatter } from "./lib/markdown.mjs";
 import { extractEngineMeta, describeDiff } from "./lib/engine-meta.mjs";
+import { extractEngineDocs, describeDocsDiff } from "./lib/engine-docs.mjs";
 import { findErrorTag, errorTagNumber } from "./lib/errorTag.mjs";
 import { engineCandidates as findEngineCandidates } from "./lib/engine-dir.mjs";
 
@@ -193,6 +194,19 @@ if (engineDir && fs.existsSync(path.join(engineDir, "engine"))) {
             fail("src/generated/engine-meta.json", `out of date relative to the engine at ${engineDir}:\n${diff.map((d) => `  ${d}`).join("\n")}\nrun: node scripts/sync-engine.mjs ${engineDir}`);
             metaStatus = "OUT OF DATE";
         } else metaStatus = `up to date (engine ${fresh.engineVersion})`;
+
+        // The error page and the limits table come from the engine's documentation.
+        const docsFile = path.join(root, "src/generated/engine-docs.json");
+        if (!fs.existsSync(docsFile)) {
+            fail("src/generated/engine-docs.json", `missing; run: node scripts/sync-engine.mjs ${engineDir}`);
+        } else {
+            const freshDocs = extractEngineDocs(engineDir, fresh.errorCodes, cuffc);
+            const docsDiff = describeDocsDiff(JSON.parse(fs.readFileSync(docsFile, "utf8")), freshDocs);
+            if (docsDiff.length) {
+                fail("src/generated/engine-docs.json", `out of date relative to the engine's docs at ${engineDir}:\n${docsDiff.slice(0, 20).map((d) => `  ${d}`).join("\n")}\nrun: node scripts/sync-engine.mjs ${engineDir}`);
+                metaStatus += ", engine-docs.json OUT OF DATE";
+            }
+        }
     } catch (err) {
         fail("engine metadata", `could not read the engine source: ${err.message}`);
     }

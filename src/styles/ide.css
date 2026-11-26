@@ -320,3 +320,14 @@
         flex: 1 1 45%;
     }
 }
+
+/* The error code in a report links to its page in the error reference. */
+.console-error-link {
+    color: inherit;
+    text-decoration: underline dotted;
+    text-underline-offset: 2px;
+}
+
+.console-error-link:hover {
+    text-decoration-style: solid;
+}

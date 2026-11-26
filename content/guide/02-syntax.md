@@ -55,7 +55,18 @@ Every value has a type. These are the types of the language:
 
 The last column is used when a value stands where a condition is expected; see [Truthiness](#truthiness) below. There is also a `match` type, the result of a successful pattern match, which is covered in [Pattern matching](#pattern-commands).
 
-**Numbers.** A number literal is digits with an optional `.` followed by more digits, such as `42` or `3.14`, optionally followed by an exponent: `1e6`, `2.5E-3`, `4e+2`. There is no number that starts or ends with a dot (`.5`, `5.`), no hexadecimal or binary literal and no digit separator (`1_000`), and a letter that touches a number, as in `2x`, `1e` or `0x10`, is an `InvalidNumberLiteral` ({{error.InvalidNumberLiteral}}) syntax error. A leading `-` is the unary minus operator. Every number is a double-precision floating-point value, so decimal fractions are not always exact: `0.1 + 0.2 is 0.3` is false. When you compare the results of calculations, round both sides first (`math_round` in [Modules and libraries](#dlc-math)). `print` shows a whole number without a decimal point (`100`) and any other number with at most 15 significant digits (`0.3`).
+**Numbers.** A number literal is digits with an optional `.` followed by more digits, such as `42` or `3.14`, optionally followed by an exponent: `1e6`, `2.5E-3`, `4e+2`. There is no number that starts or ends with a dot (`.5`, `5.`), no hexadecimal or binary literal and no digit separator (`1_000`), and a letter that touches a number, as in `2x`, `1e` or `0x10`, is an `InvalidNumberLiteral` ({{error.InvalidNumberLiteral}}) syntax error. A leading `-` is the unary minus operator. Every number is a double-precision floating-point value, so decimal fractions are not always exact: `0.1 + 0.2 is 0.3` is false. When you compare the results of calculations, round both sides first (`math_round` in [Modules and libraries](#dlc-math)). `print` shows a whole number below 10<sup>15</sup> without a decimal point (`100`) and any other number with at most 15 significant digits (`0.3`). A whole number of 10<sup>15</sup> or more is written with an exponent and only its first 15 digits, and so is the text that `to_str` or an f-string makes of it, although the number itself stays exact up to 2<sup>53</sup>. `math_to_base(x, 10)` writes the exact digits of a whole number from 0 to 2<sup>53</sup> - 1 ([Modules and libraries](#dlc-math)):
+
+```cuff
+use DLC:math
+print(10 ** 14, 10 ** 15)
+print(math_to_base(2 ** 53 - 1, 10))
+```
+
+```output
+100000000000000 1e+15
+9007199254740991
+```
 
 **Text.** A `str` is written between double quotes or between single quotes, and it may span several lines. Inside it, `\"`, `\'`, `\\`, `\n` (a new line), `\t` (a tab) and `\r` are escapes; any other backslash sequence is kept exactly as written, which is what lets patterns contain `\.`. Text is made of characters, not bytes, so an accented letter or a Hangul syllable counts as one character.
 

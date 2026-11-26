@@ -153,7 +153,7 @@ print(v.code)   note: PrivateMemberAccess, code is private
 - A method with the same name in the child **replaces** the parent's for objects of the child. There is no `override` word.
 - `super.name(arguments)` calls the parent's version on the same object. It is available only in a method of a class that has a parent.
 - A child that does not define `init` uses its parent's. A child that defines `init` does not get the parent's automatically: call it with `super.init(...)` when you need it.
-- A child cannot declare a field or method that has the name of one it already has (`DuplicateMember` ({{error.DuplicateMember}})). A class cannot extend itself, directly or through its ancestors, and it can extend only a class (`InvalidInheritance` ({{error.InvalidInheritance}})).
+- A child cannot declare a field or method that has the name of one it already has (`DuplicateMember` ({{error.DuplicateMember}})). A class cannot extend itself, directly or through its ancestors, nor a function, nor the built-in `Task` (`InvalidInheritance` ({{error.InvalidInheritance}})). A name that is no class at all, such as a variable or a misspelling, is `UnknownClass` ({{error.UnknownClass}}).
 
 ```cuff
 class Animal do:

@@ -32,7 +32,7 @@ summary: Common mistakes, known limitations, related links
 - **Standard input**: unless live input is available, `input()` consumes the text pre-filled in the stdin panel one line at a time. Once it is used up, `input()` returns an empty string.
 - **Network**: in the native `cuffc`, `DLC:network` sends real plain-HTTP requests. In this browser IDE the browser sandbox blocks raw socket access, so requests mostly end in failure ([Modules and libraries](#dlc-network)).
 - **File system**: `DLC:filesystem` is available only in the native `cuffc`. In this browser IDE, a `use DLC:filesystem` in any file of the project makes the run refuse to start ([Modules and libraries](#dlc-filesystem)).
-- **Recursion depth**: a function call depth over 1,000 stops the run safely with a `StackOverflow` ({{error.StackOverflow}}) runtime error.
+- **Recursion depth**: only so many calls may be active at once, and a deeper recursion stops the run safely with a `StackOverflow` ({{error.StackOverflow}}) runtime error. This is one of the engine's limits, all listed in [Limits](#limits).
 - **Execution time limit**: to protect the tab from infinite loops, this IDE caps execution time (8 seconds by default; you can always stop a run yourself).
 - **Tasks are not threads**: one thing runs at a time, and a task that never waits holds up all the others. `async` makes waiting cheap; it does not make a calculation faster.
 
@@ -43,3 +43,4 @@ Everything covered here is also available as {{examples.count}} runnable example
 - [cuffscript: engine and CLI source code]({{site.githubUrl}})
 - [cuffscript-wasm: npm package](https://www.npmjs.com/package/cuffscript-wasm)
 - [CHANGELOG: changes by version]({{site.changelogUrl}})
+- [Error reference](/errors/): look up what any error code means and how to fix it
