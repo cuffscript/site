@@ -199,7 +199,7 @@ The module runs every program with the engine's default options. There is no ste
 
 ## C++ {#embedding-cpp}
 
-The engine is a set of C++17 headers under `engine/`. There is nothing to build or link: include `engine/CuffEngine.h`, the one header a host needs, and compile with `-I` pointing at the repository's root. Build with exceptions on (the default); the engine uses them internally and never lets one escape. The headers compile without warnings under `-Wall -Wextra`. Everything lives in the `cuff` namespace, and the class that runs programs is `cuff::Engine`.
+The engine is a set of C++17 headers under `engine/`. There is nothing to build or link: include `engine/CuffEngine.h`, the one header a host needs, and compile with `-I` pointing at the repository's root, as C++17 or later (C++20 and C++23 work too). Build with exceptions on (the default); the engine uses them internally and never lets one escape. The headers compile without warnings under `-Wall -Wextra`. Everything lives in the `cuff` namespace, and the class that runs programs is `cuff::Engine`.
 
 ```cpp
 // host.cpp

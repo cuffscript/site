@@ -68,7 +68,7 @@ Mathematical functions on numbers. Anything that is not a finite number (the squ
 | `math_round(x [, digits])` | Rounds to `digits` decimal places (0 to 15, default 0); halves round away from zero |
 | `math_floor(x)`, `math_ceil(x)`, `math_trunc(x)` | Round down, round up, round toward zero |
 | `math_sign(x)` | `-1`, `0` or `1` |
-| `math_min(a, b, ...)`, `math_max(a, b, ...)` | The smallest or largest of the numbers, or of the numbers in one list |
+| `math_min(a, ...)`, `math_max(a, ...)` | The smallest or largest of one or more numbers, or of the numbers in one list |
 | `math_clamp(value, low, high)` | `value`, kept between `low` and `high` |
 | `math_log(x [, base])`, `math_log2(x)`, `math_log10(x)`, `math_exp(x)` | Logarithms (natural by default) and `e` to the power `x` |
 | `math_sin(x)`, `math_cos(x)`, `math_tan(x)` | Trigonometry, in radians |
@@ -628,7 +628,7 @@ Lets a program ask about, and use, the parts of the device it runs on: its batte
 | `hw_battery()` | A map: `"level"` (0 to 100) and `"charging"` (a `boolean`). |
 | `hw_button(button)` | `true` while the button is held down. |
 | `hw_led(light, on)` | Turns the light on (`true`) or off (`false`). |
-| `hw_beep(hertz, seconds)` | Sounds the buzzer; 880 Hz for 0.2 seconds when nothing is given. |
+| `hw_beep([hertz [, seconds]])` | Sounds the buzzer: 880 Hz for 0.2 seconds when nothing is given, and for 0.2 seconds when only `hertz` is. `hertz` is from 20 to 20000 and `seconds` from 0 to 10. |
 | `hw_screen_text(line, text)` | Shows `text` on a line of the device's screen, counted from 0. |
 | `hw_serial()` and `hw_serial(text)` | What has arrived on the serial line since the last read (an empty text when nothing has; it does not wait), and sending `text` on it. |
 | `hw_sensor(name)` | The reading of the sensor with that name, a number. The names are the host's; the usual ones are `"temperature"`, `"humidity"`, `"light"` and `"pressure"`. |
