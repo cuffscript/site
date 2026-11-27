@@ -20,20 +20,21 @@ export class ConsoleView {
         if (this.lineCount === 0) this.container.innerHTML = "";
         const line = document.createElement("div");
         if (className) line.className = className;
-        const tag = linkErrorCode ? /\[(E\d+-\d{3})\]/.exec(text) : null;
+        const tag = linkErrorCode ? /\[E(\d{1,2})-(\d{3})\]/.exec(text) : null;
         if (tag) {
             // "ERROR: [E4-006] Runtime Error ..." -> the code becomes a link to its page in the error reference.
+            // The href is rebuilt from the parsed numbers, never from the program's output text,
+            // so nothing the running program prints can reach the link target.
+            const category = Number(tag[1]);
+            const number = Number(tag[2]);
+            const code = `E${category}-${String(number).padStart(3, "0")}`;
             const link = document.createElement("a");
             link.className = "console-error-link";
-            // Build the URL from parts: the code is matched by a strict regex, and
-            // assigning it via `hash` keeps it out of any HTML/URL-scheme context.
-            const url = new URL("/errors/", window.location.origin);
-            url.hash = tag[1] ?? "";
-            link.href = url.pathname + url.hash;
+            link.href = `/errors/#${code}`;
             link.target = "_blank";
             link.rel = "noreferrer";
             link.title = "What does this error mean?";
-            link.textContent = tag[0];
+            link.textContent = `[${code}]`;
             line.append(text.slice(0, tag.index), link, text.slice(tag.index + tag[0].length));
         } else {
             line.textContent = text.length > 0 ? text : "\u00A0";
