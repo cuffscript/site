@@ -3,6 +3,7 @@ import { test } from "node:test";
 import assert from "node:assert/strict";
 import fs from "node:fs";
 import path from "node:path";
+import { fileURLToPath } from "node:url";
 
 let mod;
 try {
@@ -35,7 +36,7 @@ t("a folder without main.cuff is a loud error, not a broken menu entry", () => {
 });
 
 t("the shipped examples folder: no orphaned labels (a typo'd key would silently do nothing)", () => {
-    const dir = new URL("../../src/examples/", import.meta.url).pathname;
+    const dir = fileURLToPath(new URL("../../src/examples/", import.meta.url));
     const labels = JSON.parse(fs.readFileSync(path.join(dir, "labels.json"), "utf8"));
     const slugs = fs.readdirSync(dir).filter((n) => /^\d+_/.test(n)).map((n) => n.replace(/\.cuff$/, ""));
     assert.ok(slugs.length >= 1);

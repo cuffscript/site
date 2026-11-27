@@ -12,7 +12,7 @@ const CHANGELOG_RAW_URL = `https://raw.githubusercontent.com/${siteConfig.repo}/
 const CHANGELOG_BLOB_URL = `https://github.com/${siteConfig.repo}/blob/${siteConfig.branch}/${CHANGELOG_PATH}`;
 
 const PARSE_OPTIONS = { maxEntries: siteConfig.newsCount, summaryMaxLen: 200 };
-const CACHE_KEY = `cuffscript-site:changelog-feed:v1:${siteConfig.newsCount}`;
+const CACHE_KEY = `cuffscript-site:changelog-feed:v2:${siteConfig.newsCount}`;
 const CACHE_TTL_MS = 10 * 60 * 1000; // avoid refetching on every page view
 
 function entriesHtml(entries: ChangelogEntry[]): string {
@@ -26,29 +26,34 @@ function entriesHtml(entries: ChangelogEntry[]): string {
         .join("");
 }
 
-function readCache(): ChangelogEntry[] | null {
+// The cache holds the raw CHANGELOG markdown, not rendered HTML: every render
+// goes back through parseChangelog (which escapes before formatting), so
+// tampered sessionStorage can never inject markup into the page.
+function readCache(): string | null {
     try {
         const raw = sessionStorage.getItem(CACHE_KEY);
         if (!raw) return null;
-        const parsed = JSON.parse(raw) as { at: number; entries: ChangelogEntry[] };
+        const parsed = JSON.parse(raw) as { at?: unknown; markdown?: unknown };
+        if (typeof parsed.at !== "number" || typeof parsed.markdown !== "string") return null;
         if (Date.now() - parsed.at > CACHE_TTL_MS) return null;
-        return parsed.entries;
+        return parsed.markdown;
     } catch {
         return null; // private-browsing / storage disabled — just refetch
     }
 }
 
-function writeCache(entries: ChangelogEntry[]): void {
+function writeCache(markdown: string): void {
     try {
-        sessionStorage.setItem(CACHE_KEY, JSON.stringify({ at: Date.now(), entries }));
+        sessionStorage.setItem(CACHE_KEY, JSON.stringify({ at: Date.now(), markdown }));
     } catch {
         // storage full or disabled — fine, this is just an optimization
     }
 }
 
 export async function renderNewsFeed(listEl: HTMLElement, stateEl: HTMLElement): Promise<void> {
-    const cached = readCache();
-    if (cached && cached.length > 0) {
+    const cachedMarkdown = readCache();
+    const cached = cachedMarkdown ? parseChangelog(cachedMarkdown, PARSE_OPTIONS) : [];
+    if (cached.length > 0) {
         listEl.innerHTML = entriesHtml(cached);
         stateEl.hidden = true;
         return;
@@ -63,7 +68,7 @@ export async function renderNewsFeed(listEl: HTMLElement, stateEl: HTMLElement):
 
         listEl.innerHTML = entriesHtml(entries);
         stateEl.hidden = true;
-        writeCache(entries);
+        writeCache(markdown);
     } catch {
         listEl.innerHTML = "";
         stateEl.hidden = false;

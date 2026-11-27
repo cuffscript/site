@@ -25,7 +25,11 @@ export class ConsoleView {
             // "ERROR: [E4-006] Runtime Error ..." -> the code becomes a link to its page in the error reference.
             const link = document.createElement("a");
             link.className = "console-error-link";
-            link.href = `/errors/#${tag[1]}`;
+            // Build the URL from parts: the code is matched by a strict regex, and
+            // assigning it via `hash` keeps it out of any HTML/URL-scheme context.
+            const url = new URL("/errors/", window.location.origin);
+            url.hash = tag[1] ?? "";
+            link.href = url.pathname + url.hash;
             link.target = "_blank";
             link.rel = "noreferrer";
             link.title = "What does this error mean?";

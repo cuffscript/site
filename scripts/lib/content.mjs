@@ -10,7 +10,7 @@
 
 import fs from "node:fs";
 import path from "node:path";
-import { renderMarkdown, parseFrontmatter, escapeText, renderInline, ContentError } from "./markdown.mjs";
+import { renderMarkdown, parseFrontmatter, escapeText, escapeAttr, renderInline, ContentError } from "./markdown.mjs";
 import { errorTagNumber } from "./errorTag.mjs";
 import { ERROR_CATEGORIES } from "./engine-docs.mjs";
 
@@ -163,8 +163,8 @@ function errorEntryHtml(e, ctx, vars) {
           ? '<span class="err-tag err-tag-ok">or_else can catch it</span>'
           : '<span class="err-tag err-tag-stop">ends the program</span>';
     const parts = [
-        `<section class="err-entry${e.reserved ? " err-reserved" : ""}" id="${e.code}" data-category="${escapeText(e.category)}">`,
-        `<header class="err-head"><h3><a class="err-code" href="#${e.code}">${e.code}</a><span class="err-name">${escapeText(e.name)}</span></h3>` +
+        `<section class="err-entry${e.reserved ? " err-reserved" : ""}" id="${escapeAttr(e.code)}" data-category="${escapeAttr(e.category)}">`,
+        `<header class="err-head"><h3><a class="err-code" href="#${escapeAttr(e.code)}">${escapeText(e.code)}</a><span class="err-name">${escapeText(e.name)}</span></h3>` +
             `<span class="err-tags"><span class="err-tag">${escapeText(e.category)}</span>${state}</span></header>`,
         `<p class="err-meaning">${renderInline(engineDocLinks(e.meaning, ctx))}</p>`,
     ];
@@ -193,7 +193,7 @@ export function buildErrorsPage(ctx) {
         categories
             .map((c) => {
                 const n = raised.filter((e) => e.category === c).length;
-                return n ? `<button type="button" class="err-chip" data-category="${escapeText(c)}" aria-pressed="false">${escapeText(c)} <span>${n}</span></button>` : "";
+                return n ? `<button type="button" class="err-chip" data-category="${escapeAttr(c)}" aria-pressed="false">${escapeText(c)} <span>${n}</span></button>` : "";
             })
             .join("");
 
@@ -201,8 +201,8 @@ export function buildErrorsPage(ctx) {
         .map((c) => {
             const list = raised.filter((e) => e.category === c);
             if (list.length === 0) return "";
-            const id = `cat-${c.toLowerCase().replace(/\s+/g, "-")}`;
-            return `<section class="err-group guide-section" id="${id}" data-category="${escapeText(c)}"><h2>${escapeText(c)} errors <span class="err-count">${list.length}</span></h2>\n${list.map((e) => errorEntryHtml(e, ctx, vars)).join("\n")}\n</section>`;
+            const id = `cat-${c.toLowerCase().replace(/[^a-z0-9]+/g, "-")}`;
+            return `<section class="err-group guide-section" id="${escapeAttr(id)}" data-category="${escapeAttr(c)}"><h2>${escapeText(c)} errors <span class="err-count">${list.length}</span></h2>\n${list.map((e) => errorEntryHtml(e, ctx, vars)).join("\n")}\n</section>`;
         })
         .join("\n");
 
@@ -269,7 +269,7 @@ export function buildGuide(ctx) {
         .map(
             (g) =>
                 `<div class="guide-toc-group">\n<h2>${renderInline(g.title)}</h2>\n` +
-                g.sections.map((s) => `<a href="#${s.id}">${escapeText(s.label)}</a>`).join("\n") +
+                g.sections.map((s) => `<a href="#${escapeAttr(s.id)}">${escapeText(s.label)}</a>`).join("\n") +
                 `\n</div>`,
         )
         .join("\n");
@@ -327,7 +327,7 @@ export function buildHome(ctx, guide) {
             if (!id) throw new ContentError("home card needs an 'id:' in its front matter", full, 1);
             if (seen.has(id)) throw new ContentError(`duplicate card id "${id}"`, full, 1);
             seen.add(id);
-            toc.push(`<a href="#${id}">${escapeText(String(data.toc ?? title))}</a>`);
+            toc.push(`<a href="#${escapeAttr(id)}">${escapeText(String(data.toc ?? title))}</a>`);
         }
 
         if (type === "hero") {
